@@ -1,10 +1,11 @@
-# Dépendances du data_pipeline — Jalon 0
+# Dépendances du data_pipeline
 # Installe avec : pip install -r data_pipeline/requirements.txt
 
 requests==2.32.3       # Appels HTTP à l'API TMDb
 python-dotenv==1.0.1   # Chargement du fichier .env
 
-# ── Jalon 1 (décommenté au moment voulu) ───────────────────────────────────────
-# Pillow==10.4.0        # Traitement des images (extraction de couleurs)
-# numpy==2.0.2          # Calculs vectoriels (similarité cosinus)
-# google-genai==1.5.0   # Enrichissement LLM des tags via Gemini
+# ── Jalon 1.2 ──────────────────────────────────────────────────────────────────
+Pillow==10.4.0         # Traitement des images (extraction de couleurs)
+numpy>=2.1.0           # Calculs vectoriels — 2.1+ a des wheels Python 3.13 (pas de compilation)
+google-genai>=2.25.0   # Enrichissement LLM des tags via Gemini
+pydantic>=2.12.5       # Schémas de sortie structurée pour Gemini (compatible google-genai)
