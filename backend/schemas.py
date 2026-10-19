@@ -6,7 +6,10 @@ les palettes de couleurs et le moteur de recommandation.
 """
 
 from typing import List, Dict, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from datetime import datetime
+from pydantic import BaseModel, Field, ConfigDict, field_validator
+
+
 
 
 # ── Genres et Tags ─────────────────────────────────────────────────────────────
@@ -106,3 +109,60 @@ class RecommendationItem(BaseModel):
 class RecommendResponse(BaseModel):
     reference_movie: MovieBriefOut
     recommendations: List[RecommendationItem]
+
+
+# ── Jalon 5 : Authentification & Watchlist ────────────────────────────────────
+
+class UserRegister(BaseModel):
+    email: str = Field(description="Adresse email de l'utilisateur")
+    password: str = Field(min_length=6, description="Mot de passe (minimum 6 caractères)")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        clean = v.strip().lower()
+        if "@" not in clean or "." not in clean.split("@")[-1]:
+            raise ValueError("Format d'adresse email invalide.")
+        return clean
+
+
+class UserLogin(BaseModel):
+    email: str = Field(description="Adresse email")
+    password: str = Field(description="Mot de passe")
+
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    created_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
+
+
+class WatchlistAddRequest(BaseModel):
+    movie_id: int = Field(description="ID TMDb du film à ajouter")
+    status: str = Field(default="to_watch", description="Statut : 'to_watch', 'watched', ou 'favorite'")
+    notes: Optional[str] = Field(default=None, description="Notes personnelles facultatives")
+
+
+class WatchlistUpdateRequest(BaseModel):
+    status: Optional[str] = Field(default=None, description="Nouveau statut : 'to_watch', 'watched', 'favorite'")
+    notes: Optional[str] = Field(default=None, description="Notes personnelles")
+
+
+class WatchlistItemOut(BaseModel):
+    id: int
+    movie_id: int
+    status: str
+    notes: Optional[str] = None
+    created_at: Optional[datetime] = None
+    movie: MovieBriefOut
+
+    model_config = ConfigDict(from_attributes=True)
+

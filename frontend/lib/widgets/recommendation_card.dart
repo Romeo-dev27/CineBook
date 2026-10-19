@@ -5,12 +5,17 @@ import '../theme/app_theme.dart';
 class RecommendationCard extends StatelessWidget {
   final RecommendationItem item;
   final int rank;
+  final bool isWatchlisted;
+  final VoidCallback? onToggleWatchlist;
 
   const RecommendationCard({
     super.key,
     required this.item,
     required this.rank,
+    this.isWatchlisted = false,
+    this.onToggleWatchlist,
   });
+
 
   Color _getScoreColor(double score) {
     if (score >= 0.80) return AppTheme.emerald;
@@ -135,6 +140,20 @@ class RecommendationCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (onToggleWatchlist != null) ...[
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: Icon(
+                                isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
+                                color: isWatchlisted ? AppTheme.gold : AppTheme.textMuted,
+                                size: 20,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: isWatchlisted ? 'Retirer de la watchlist' : 'Ajouter à la watchlist',
+                              onPressed: onToggleWatchlist,
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 8),

@@ -9,12 +9,13 @@ Schéma :
   - MovieVector (les 5 sous-vecteurs précalculés normalisés en One-to-One)
 """
 
-from typing import List
+from datetime import datetime, timezone
 from sqlalchemy import (
-    Column, Integer, String, Float, Text, ForeignKey, Table, JSON
+    Column, Integer, String, Float, Text, ForeignKey, Table, JSON, DateTime, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 from backend.database import Base
+
 
 # ── Tables d'association Many-to-Many ──────────────────────────────────────────
 
@@ -136,3 +137,48 @@ class MovieVector(Base):
 
     def __repr__(self) -> str:
         return f"<MovieVector(movie_id={self.movie_id})>"
+
+
+# ── Jalon 5 : Comptes Utilisateurs & Watchlists ────────────────────────────────
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relations
+    watchlist_items = relationship(
+        "WatchlistItem",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(WatchlistItem.created_at)"
+    )
+
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, email='{self.email}')>"
+
+
+class WatchlistItem(Base):
+    __tablename__ = "watchlist_items"
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="uq_user_movie_watchlist"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    movie_id = Column(Integer, ForeignKey("movies.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    status = Column(String(30), default="to_watch", nullable=False)  # "to_watch", "watched", "favorite"
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relations
+    user = relationship("User", back_populates="watchlist_items")
+    movie = relationship("Movie", lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<WatchlistItem(id={self.id}, user_id={self.user_id}, movie_id={self.movie_id}, status='{self.status}')>"
+

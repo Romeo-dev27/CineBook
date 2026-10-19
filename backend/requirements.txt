@@ -10,3 +10,7 @@ fastapi>=0.115.0          # Framework API REST asynchrone
 uvicorn[standard]>=0.30.0 # Serveur ASGI pour FastAPI
 httpx>=0.27.0             # Client HTTP pour TestClient et tests d'intégration API
 
+# ── Jalon 5 (Auth & Watchlists) ────────────────────────────────────────────────
+pyjwt>=2.8.0              # Création et validation des JSON Web Tokens (compatible Supabase)
+
+

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'models/movie.dart';
 import 'models/recommendation.dart';
 import 'services/api_service.dart';
+import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/movie_search_bar.dart';
 import 'widgets/reference_card.dart';
 import 'widgets/weight_sliders.dart';
 import 'widgets/recommendation_card.dart';
+import 'widgets/auth_dialog.dart';
+import 'widgets/watchlist_drawer.dart';
 
 void main() {
   runApp(const CineBookApp());
@@ -34,7 +37,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ApiService _apiService = ApiService();
+  final AuthService _authService = AuthService();
 
   MovieBrief? _selectedMovie;
   RecommendationWeights _weights = RecommendationWeights.equilibre;
@@ -45,14 +50,24 @@ class _HomeScreenState extends State<HomeScreen> {
   RecommendResponse? _response;
   String? _errorMessage;
 
-  // Films d'exemple populaires pour démarrer en un clic
   List<MovieBrief> _quickPicks = [];
   bool _isLoadingQuickPicks = true;
 
   @override
   void initState() {
     super.initState();
+    _authService.addListener(_onAuthChanged);
     _loadQuickPicks();
+  }
+
+  @override
+  void dispose() {
+    _authService.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadQuickPicks() async {
@@ -62,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _quickPicks = movies;
           _isLoadingQuickPicks = false;
-          // Pré-sélectionner le premier film pour une expérience immédiate
           if (movies.isNotEmpty && _selectedMovie == null) {
             _selectedMovie = movies.firstWhere(
               (m) => m.title.contains('Blade Runner 2049'),
@@ -120,12 +134,70 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _handleToggleWatchlist(RecommendationItem movie) async {
+    if (!_authService.isAuthenticated) {
+      final loggedIn = await AuthDialog.show(context, _authService);
+      if (loggedIn != true || !mounted) return;
+    }
+
+    final isAlreadySaved = _authService.isMovieInWatchlist(movie.id);
+
+    try {
+      if (isAlreadySaved) {
+        await _authService.removeFromWatchlist(movie.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Film retiré de votre Watchlist : "${movie.title}"'),
+              backgroundColor: AppTheme.surfaceElevated,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        await _authService.addToWatchlist(movie.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.bookmark, color: AppTheme.gold, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('"${movie.title}" ajouté à votre Watchlist !')),
+                ],
+              ),
+              backgroundColor: AppTheme.surfaceElevated,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppTheme.ruby,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 960;
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: WatchlistDrawer(
+        authService: _authService,
+        onSelectMovie: (movie) {
+          setState(() => _selectedMovie = movie);
+          _fetchRecommendations();
+        },
+      ),
       appBar: AppBar(
         title: Row(
           children: [
@@ -154,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: AppTheme.border),
               ),
               child: const Text(
-                'MVP FLUTTER',
+                'FLUTTER + SUPABASE AUTH',
                 style: TextStyle(
                   color: AppTheme.gold,
                   fontSize: 10,
@@ -166,26 +238,76 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.bolt, color: AppTheme.emerald, size: 14),
-                SizedBox(width: 4),
-                Text(
-                  'FastAPI REST Live',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+          // Statut ou Bouton Auth
+          if (!_authService.isAuthenticated)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.login, size: 16, color: AppTheme.gold),
+                label: const Text('Connexion', style: TextStyle(color: AppTheme.gold, fontSize: 13)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.gold),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
-              ],
+                onPressed: () => AuthDialog.show(context, _authService),
+              ),
+            )
+          else ...[
+            // Bouton Watchlist avec compteur
+            InkWell(
+              onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.gold.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bookmarks, color: AppTheme.gold, size: 16),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Watchlist',
+                      style: TextStyle(
+                        color: AppTheme.gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppTheme.gold,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${_authService.watchlist.length}',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+
+            // Profil Utilisateur
+            IconButton(
+              icon: const Icon(Icons.account_circle, color: AppTheme.textSecondary, size: 28),
+              tooltip: _authService.currentUser?.email,
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            ),
+          ],
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -198,7 +320,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Colonne de Gauche : Contrôles & Sélection (42% de l'écran)
         SizedBox(
           width: 420,
           child: SingleChildScrollView(
@@ -207,8 +328,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const VerticalDivider(color: AppTheme.border, width: 1),
-
-        // Colonne de Droite : Recommandations (Reste de l'écran)
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -249,7 +368,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Barre de recherche
         MovieSearchBar(
           apiService: _apiService,
           onMovieSelected: (movie) {
@@ -258,7 +376,6 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
 
-        // Suggestions rapides
         if (!_isLoadingQuickPicks && _quickPicks.isNotEmpty) ...[
           const SizedBox(height: 10),
           SingleChildScrollView(
@@ -294,7 +411,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
         const SizedBox(height: 16),
 
-        // Carte du film de référence sélectionné
         if (_selectedMovie != null) ...[
           ReferenceCard(
             movie: _selectedMovie!,
@@ -308,7 +424,6 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
         ],
 
-        // 2. Pondérations des 5 vecteurs
         const Text(
           '2. Ajuste les dimensions de recommandation',
           style: TextStyle(
@@ -330,7 +445,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
         const SizedBox(height: 20),
 
-        // Bouton d'action principal
         SizedBox(
           height: 52,
           child: ElevatedButton.icon(
@@ -458,9 +572,12 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 20),
 
         ...List.generate(recs.length, (index) {
+          final item = recs[index];
           return RecommendationCard(
-            item: recs[index],
+            item: item,
             rank: index + 1,
+            isWatchlisted: _authService.isMovieInWatchlist(item.id),
+            onToggleWatchlist: () => _handleToggleWatchlist(item),
           );
         }),
       ],

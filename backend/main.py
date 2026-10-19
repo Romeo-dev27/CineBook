@@ -17,8 +17,10 @@ from backend.database import engine, get_db, Base
 from backend.models import Movie
 from backend.routes.movies import router as movies_router
 from backend.routes.recommend import router as recommend_router
+from backend.routes.auth import router as auth_router
+from backend.routes.watchlist import router as watchlist_router
 
-# Assurer la création des tables si la DB n'existe pas encore
+# Assurer la création des tables si la DB n'existe pas encore (y compris users et watchlist_items)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -26,7 +28,7 @@ app = FastAPI(
     description=(
         "API REST cinématographique pour la recommandation de films par Similarité "
         "Cosinus Pondérée (Ambiance, Esthétique Visuelle, Rythme, Genre, Époque) "
-        "avec modificateur de découverte."
+        "avec modificateur de découverte et gestion de comptes utilisateurs."
     ),
     version="1.0.0",
     docs_url="/docs",
@@ -46,6 +48,9 @@ app.add_middleware(
 # ── Routeurs ──────────────────────────────────────────────────────────────────
 app.include_router(movies_router)
 app.include_router(recommend_router)
+app.include_router(auth_router)
+app.include_router(watchlist_router)
+
 
 
 # ── Diagnostics & Santé ───────────────────────────────────────────────────────
