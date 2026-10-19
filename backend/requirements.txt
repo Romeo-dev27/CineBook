@@ -8,3 +8,5 @@ pytest>=8.0.0             # Tests unitaires
 # ── Jalon 3 (API FastAPI) ──────────────────────────────────────────────────────
 fastapi>=0.115.0          # Framework API REST asynchrone
 uvicorn[standard]>=0.30.0 # Serveur ASGI pour FastAPI
+httpx>=0.27.0             # Client HTTP pour TestClient et tests d'intégration API
+
