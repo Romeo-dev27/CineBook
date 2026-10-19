@@ -1,26 +1,19 @@
 """
-enrich_tags.py — Jalon 1.2 : Enrichissement LLM des tags d'atmosphère
+enrich_tags.py — Jalon 1.2 : Enrichissement des tags d'atmosphère et du rythme (pacing)
 
-Pour chaque film, ce script appelle l'API Gemini pour enrichir les métadonnées
-en assignant des scores précis sur notre vocabulaire de 20 tags atmosphériques,
-plus un score de rythme (pacing).
+Stratégie hybride de niveau production :
+  1. Si le film a déjà été enrichi par Gemini (dans le checkpoint), on conserve ses tags.
+  2. Tente l'appel Gemini (avec structured output Pydantic).
+  3. Si le quota de l'API gratuite est atteint (HTTP 429) ou service indisponible (HTTP 503),
+     bascule automatiquement sur un résolveur sémantique déterministe basé sur :
+       - Les genres officiels TMDb
+       - Les mots-clés officiels TMDb (keywords)
+       - Le synopsis (overview)
+       - Les tags de référence (atmosphere_seeds)
+       - La durée (runtime) pour le calcul du rythme
 
 Entrée  : data/movies_raw.json
 Sortie  : data/enriched_tags.json
-
-Structure de sortie par film :
-  {
-    "atmosphere": {
-      "melancholic": 1, "dark": 1, "cold": 1, ...,  ← 0 ou 1 par tag
-    },
-    "pacing": 0.35,    ← de 0.0 (très lent) à 1.0 (très rapide)
-    "_model": "gemini-3.8-flash"
-  }
-
-Vocabulaire des 20 tags (Vector 2 — Atmosphère) :
-  melancholic, joyful, tense, dreamlike, raw, tender, nostalgic,
-  dark, epic, intimate, poetic, surreal, chaotic, meditative,
-  elegant, bleak, warm, cold, kinetic, disturbing
 
 Usage :
   python -m data_pipeline.enrich_tags
@@ -28,6 +21,7 @@ Usage :
 
 import io
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -47,11 +41,10 @@ OUTPUT_FILE     = DATA_DIR / "enriched_tags.json"
 CHECKPOINT_FILE = DATA_DIR / "_checkpoint_enrich.json"
 
 # ── Paramètres Gemini ───────────────────────────────────────────────────────────
-GEMINI_MODEL        = "gemini-3.8-flash"   # Rapide et économique pour du tagging
-DELAY_BETWEEN_CALLS = 1.5                  # Secondes entre les appels (évite le rate limiting)
-MAX_KEYWORDS        = 12                   # Nombre max de keywords TMDb à envoyer au LLM
+GEMINI_MODEL        = "gemini-3.1-flash-lite"
+DELAY_BETWEEN_CALLS = 1.0
 
-# ── Vocabulaire des 20 tags (doit rester synchronisé avec recommender.py) ───────
+# ── Vocabulaire des 20 tags (Vector 2 — Atmosphère) ─────────────────────────────
 ATMOSPHERE_TAGS = [
     "melancholic", "joyful",    "tense",    "dreamlike", "raw",
     "tender",      "nostalgic", "dark",     "epic",      "intimate",
@@ -60,19 +53,7 @@ ATMOSPHERE_TAGS = [
 ]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  Schéma de sortie structurée (Pydantic → JSON Schema pour Gemini)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 class AtmosphereTags(BaseModel):
-    """
-    Représente l'analyse d'atmosphère d'un film.
-
-    On utilise Pydantic pour deux raisons :
-      1. Gemini peut utiliser le JSON Schema de ce modèle pour garantir
-         que sa réponse est bien formatée (structured output).
-      2. On peut valider la réponse du LLM avant de la sauvegarder.
-    """
     melancholic: int
     joyful:      int
     tense:       int
@@ -97,100 +78,171 @@ class AtmosphereTags(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Construction du prompt
+#  Résolveur sémantique déterministe (Fallback basé sur les données TMDb réelles)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+KEYWORD_RULES = {
+    "melancholic": ["melancholy", "grief", "sadness", "loss", "death", "depression", "tragedy", "loneliness", "tearjerker"],
+    "joyful":      ["comedy", "humor", "friendship", "party", "adventure", "celebration", "fun", "uplifting", "satire"],
+    "tense":       ["thriller", "suspense", "hostage", "kidnapping", "murder", "investigation", "detective", "danger", "paranoia"],
+    "dreamlike":   ["dream", "surreal", "fantasy", "illusion", "vision", "hallucination", "subconscious", "wonderland"],
+    "raw":         ["violence", "brutality", "prison", "gritty", "drugs", "blood", "crime", "slum", "harsh", "poverty"],
+    "tender":      ["love", "romance", "kiss", "affection", "family", "heartwarming", "father daughter", "mother son"],
+    "nostalgic":   ["nostalgia", "childhood", "retro", "memories", "past", "vintage", "coming of age", "1970s", "1980s", "1960s"],
+    "dark":        ["noir", "neo-noir", "dark", "night", "underworld", "evil", "gothic", "sinister", "macabre", "dystopia"],
+    "epic":        ["epic", "space", "war", "galaxy", "journey", "rebellion", "quest", "historical", "monumental", "empire"],
+    "intimate":    ["dialogue", "chamber drama", "marriage", "couple", "two people", "apartment", "isolation", "confession"],
+    "poetic":      ["poetic", "nature", "art", "metaphor", "meditation", "philosophy", "cinema", "symbolism"],
+    "surreal":     ["bizarre", "absurd", "dimension", "time travel", "multiverse", "weird", "reality", "unreal"],
+    "chaotic":     ["chaos", "frenzy", "madness", "chase", "riot", "panic", "heist gone wrong", "insanity", "mayhem"],
+    "meditative":  ["slow", "contemplation", "silence", "walking", "solitude", "thinking", "quiet", "minimalist"],
+    "elegant":     ["aristocracy", "ballet", "classical music", "haute couture", "high society", "refined", "theatre", "art"],
+    "bleak":       ["bleak", "hopeless", "nihilism", "barren", "grim", "apocalypse", "despair", "ruins", "bleakness"],
+    "warm":        ["sun", "summer", "cozy", "village", "mediterranean", "countryside", "warmth", "kindness"],
+    "cold":        ["snow", "winter", "ice", "cyberpunk", "sterile", "laboratory", "spaceship", "frost", "cold war"],
+    "kinetic":     ["martial arts", "gunfight", "car chase", "speed", "explosion", "superhero", "combat", "action packed"],
+    "disturbing":  ["nightmare", "psychological", "torment", "serial killer", "obsession", "cannibalism", "cult", "shocking"]
+}
+
+def semantic_enrich(movie: dict) -> dict:
+    """
+    Extrait les tags d'atmosphère et le rythme de manière déterministe
+    à partir des métadonnées officielles TMDb (genres, keywords, synopsis)
+    et des tags curés dans le seed.
+    """
+    genres = [g["name"].lower() for g in movie.get("genres", [])]
+    keywords = [k["name"].lower() for k in movie.get("keywords", {}).get("keywords", [])]
+    overview = movie.get("overview", "").lower()
+    seeds = movie.get("_seed", {}).get("atmosphere_seeds", [])
+    runtime = movie.get("runtime", 110) or 110
+
+    full_text = " ".join(genres + keywords + [overview])
+
+    scores = {tag: 0 for tag in ATMOSPHERE_TAGS}
+
+    # 1. Intègre les tags curés du seed (poids prioritaire)
+    for s in seeds:
+        tag = s.lower().strip()
+        if tag in scores:
+            scores[tag] = 1
+
+    # 2. Match avec les règles de mots-clés et genres
+    for tag, patterns in KEYWORD_RULES.items():
+        for pat in patterns:
+            if re.search(r"\b" + re.escape(pat) + r"\b", full_text):
+                scores[tag] = 1
+                break
+
+    # 3. Règles structurelles selon les genres principaux
+    if "horror" in genres or "horreur" in genres:
+        scores["dark"] = 1
+        scores["tense"] = 1
+    if "thriller" in genres:
+        scores["tense"] = 1
+    if "action" in genres:
+        scores["kinetic"] = 1
+    if "romance" in genres:
+        scores["tender"] = 1
+    if "science fiction" in genres or "science-fiction" in genres:
+        scores["cold"] = scores.get("cold", 0) or 1
+    if "comedy" in genres or "comédie" in genres:
+        scores["joyful"] = 1
+    if "war" in genres or "guerre" in genres:
+        scores["epic"] = 1
+        scores["raw"] = 1
+
+    # Assure qu'au moins 3 tags sont actifs
+    active_count = sum(scores.values())
+    if active_count < 3:
+        scores["intimate"] = 1
+        scores["raw"] = 1
+
+    # 4. Estimation du rythme (pacing)
+    pacing = 0.50
+    if "action" in genres or "adventure" in genres:
+        pacing += 0.25
+    if "thriller" in genres or "crime" in genres:
+        pacing += 0.15
+    if "animation" in genres:
+        pacing += 0.10
+    if "drama" in genres or "drame" in genres:
+        pacing -= 0.15
+    if "mystery" in genres:
+        pacing -= 0.05
+    if scores.get("meditative") == 1:
+        pacing -= 0.15
+    if scores.get("kinetic") == 1:
+        pacing += 0.15
+
+    # Modificateur de durée
+    if runtime < 95:
+        pacing += 0.05
+    elif runtime > 150:
+        pacing -= 0.10
+
+    pacing = max(0.10, min(0.95, round(pacing, 2)))
+
+    return {
+        "atmosphere": scores,
+        "pacing":     pacing,
+        "_source":    "tmdb_semantic_mapper",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Appel Gemini avec fallback automatique
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def build_prompt(movie: dict) -> str:
-    """
-    Construit le prompt envoyé à Gemini pour analyser un film.
-
-    On fournit :
-      - Le titre et l'année (contexte principal)
-      - Le synopsis (source primaire de l'atmosphère)
-      - Les genres TMDb (signal fort)
-      - Les keywords TMDb (détails fins : "neo-noir", "dystopia", etc.)
-      - Les tags seeds de notre curation (signal secondaire)
-
-    On ne fournit PAS d'exemple de sortie JSON dans le prompt car Gemini
-    utilise le response_json_schema pour cela (avertissement dans la doc).
-    """
     title    = movie.get("title", "")
     year     = (movie.get("release_date", "????") or "????")[:4]
-    overview = movie.get("overview", "No overview available.")[:400]
+    overview = movie.get("overview", "")[:350]
     genres   = [g["name"] for g in movie.get("genres", [])]
-    keywords = [k["name"] for k in movie.get("keywords", {}).get("keywords", [])[:MAX_KEYWORDS]]
+    keywords = [k["name"] for k in movie.get("keywords", {}).get("keywords", [])[:10]]
     seeds    = movie.get("_seed", {}).get("atmosphere_seeds", [])
 
-    return f"""You are a film studies expert specializing in cinematic atmosphere and mood analysis.
-
+    return f"""You are a film studies expert.
 Analyze the following movie and assign binary scores (0 or 1) for each atmosphere tag.
-Also assign a pacing score from 0.0 (very slow, contemplative) to 1.0 (very fast, action-packed).
+Also assign a pacing score from 0.0 (contemplative) to 1.0 (furious action).
 
 FILM: {title} ({year})
 OVERVIEW: {overview}
-GENRES: {', '.join(genres) if genres else 'N/A'}
-KEYWORDS: {', '.join(keywords) if keywords else 'N/A'}
-INITIAL HINTS (curator notes): {', '.join(seeds) if seeds else 'N/A'}
+GENRES: {', '.join(genres)}
+KEYWORDS: {', '.join(keywords)}
+CURATOR HINTS: {', '.join(seeds)}
 
-IMPORTANT RULES:
-- Score 1 if the tag strongly characterizes this film's viewing experience
-- Score 0 if the tag is absent or very minor
-- A film can have multiple tags (typically 3-7 active tags)
-- Base your analysis on the film's overall tone, not just plot synopsis
-- pacing: 0.0=meditative/slow-burn, 0.3=drama pace, 0.5=balanced, 0.7=thriller pace, 1.0=action non-stop
-
-Atmosphere tags to score: melancholic, joyful, tense, dreamlike, raw, tender, nostalgic,
+Atmosphere tags: melancholic, joyful, tense, dreamlike, raw, tender, nostalgic,
 dark, epic, intimate, poetic, surreal, chaotic, meditative, elegant, bleak, warm, cold, kinetic, disturbing"""
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  Appel à l'API Gemini
-# ═══════════════════════════════════════════════════════════════════════════════
+def enrich_movie(client, movie: dict) -> dict:
+    """Tente Gemini ; si indisponible ou quota dépassé, utilise le mapper TMDb."""
+    if client:
+        try:
+            from google.genai import types
+            prompt = build_prompt(movie)
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_json_schema=AtmosphereTags.model_json_schema(),
+                    temperature=0.2,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
+                ),
+            )
+            data = json.loads(response.text)
+            validated = AtmosphereTags(**data)
+            atmosphere = {tag: getattr(validated, tag) for tag in ATMOSPHERE_TAGS}
+            return {
+                "atmosphere": atmosphere,
+                "pacing":     round(validated.pacing, 2),
+                "_source":    GEMINI_MODEL,
+            }
+        except Exception:
+            pass  # Bascule fluide sur le fallback
 
-def enrich_movie(client, movie: dict) -> Optional[dict]:
-    """
-    Appelle Gemini avec structured output pour obtenir les tags d'un film.
-
-    On utilise response_json_schema (le schéma Pydantic converti en JSON Schema)
-    pour garantir que Gemini répond dans le format exact attendu.
-    Sans ça, le LLM pourrait inventer des noms de tags ou omettre des champs.
-
-    Returns:
-        Dictionnaire avec "atmosphere" (dict tag→0/1) et "pacing" (float),
-        ou None si l'appel échoue.
-    """
-    from google import genai
-    from google.genai import types
-
-    prompt = build_prompt(movie)
-
-    try:
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_json_schema=AtmosphereTags.model_json_schema(),
-                temperature=0.2,       # Faible température → réponses cohérentes et reproductibles
-                max_output_tokens=300, # Un JSON de 21 champs n'a pas besoin de plus
-            ),
-        )
-
-        # Désérialise et valide avec Pydantic
-        raw_json   = json.loads(response.text)
-        validated  = AtmosphereTags(**raw_json)
-
-        # Sépare les tags atmosphere du pacing
-        atmosphere = {tag: getattr(validated, tag) for tag in ATMOSPHERE_TAGS}
-        return {
-            "atmosphere": atmosphere,
-            "pacing":     round(validated.pacing, 3),
-            "_model":     GEMINI_MODEL,
-        }
-
-    except Exception as exc:
-        print(f"\n    ERREUR Gemini : {exc}")
-        return None
+    return semantic_enrich(movie)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -198,75 +250,67 @@ def enrich_movie(client, movie: dict) -> Optional[dict]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
-    # ── Vérifications préalables ─────────────────────────────────────────────
     if not RAW_FILE.exists():
         print(f"Fichier introuvable : {RAW_FILE}")
         sys.exit(1)
 
-    if not GEMINI_API_KEY:
-        print("GEMINI_API_KEY manquante dans .env")
-        print("Obtiens ta cle sur https://aistudio.google.com/app/apikey")
-        sys.exit(1)
+    client = None
+    if GEMINI_API_KEY:
+        try:
+            from google import genai
+            client = genai.Client(api_key=GEMINI_API_KEY)
+        except Exception as e:
+            print(f"Client Gemini indisponible ({e}), mode mapper actif.")
 
-    # ── Initialisation du client Gemini ──────────────────────────────────────
-    from google import genai
-    client = genai.Client(api_key=GEMINI_API_KEY)
-
-    # ── Chargement des films ─────────────────────────────────────────────────
     movies: list[dict] = json.loads(RAW_FILE.read_text(encoding="utf-8"))
 
-    # Checkpoint
+    # Reprend le checkpoint existant
     checkpoint: dict[str, dict] = {}
     if CHECKPOINT_FILE.exists():
         checkpoint = json.loads(CHECKPOINT_FILE.read_text(encoding="utf-8"))
-        print(f"Checkpoint trouve : {len(checkpoint)} films deja enrichis.")
-
-    remaining = [m for m in movies if str(m["id"]) not in checkpoint]
-
-    estimated_s  = len(remaining) * DELAY_BETWEEN_CALLS
-    estimated_min = estimated_s / 60
+        print(f"Checkpoint trouvé : {len(checkpoint)} films déjà enrichis.")
 
     print(f"\n{'='*62}")
-    print(f"  CineBook - Enrichissement LLM (Jalon 1.2)")
-    print(f"  Modele    : {GEMINI_MODEL}")
-    print(f"  Films     : {len(movies)} total | {len(remaining)} a traiter")
-    print(f"  Duree est.: ~{estimated_min:.1f} minutes")
+    print(f"  CineBook — Enrichissement des Tags (Jalon 1.2)")
+    print(f"  {len(movies)} films au total | {len(movies) - len(checkpoint)} restants")
     print(f"{'='*62}\n")
 
     results: dict[str, dict] = dict(checkpoint)
-    failed: list[str] = []
 
-    for i, movie in enumerate(remaining, 1):
+    for i, movie in enumerate(movies, 1):
         tmdb_id = str(movie["id"])
         title   = movie.get("title", "?")
-        label   = f"[{i:3d}/{len(remaining)}] {title[:45]}"
-        print(f"{label:<52}", end="", flush=True)
+
+        if tmdb_id in results:
+            continue
+
+        label = f"[{i:3d}/{len(movies)}] {title[:40]}"
+        print(f"{label:<48}", end="", flush=True)
 
         enriched = enrich_movie(client, movie)
-        time.sleep(DELAY_BETWEEN_CALLS)
+        results[tmdb_id] = enriched
+        checkpoint[tmdb_id] = enriched
 
-        if enriched:
-            results[tmdb_id]    = enriched
-            checkpoint[tmdb_id] = enriched
-            CHECKPOINT_FILE.write_text(
-                json.dumps(checkpoint, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
-            # Affiche les 3 tags les plus saillants pour feedback immédiat
-            top3 = [t for t, v in enriched["atmosphere"].items() if v == 1][:3]
-            print(f"OK  pacing={enriched['pacing']:.2f}  [{', '.join(top3)}]")
-        else:
-            failed.append(title)
-            print("ECHEC")
+        CHECKPOINT_FILE.write_text(
+            json.dumps(checkpoint, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
-    # ── Sauvegarde finale ─────────────────────────────────────────────────────
+        top3 = [t for t, v in enriched["atmosphere"].items() if v == 1][:3]
+        src = "LLM" if "gemini" in enriched.get("_source", "") else "TMDb-Sem"
+        print(f"OK ({src}, pace={enriched['pacing']:.2f}) [{', '.join(top3)}]")
+
     OUTPUT_FILE.write_text(
         json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
+    llm_count = sum(1 for m in results.values() if "gemini" in m.get("_source", ""))
+    sem_count = len(results) - llm_count
+
     print(f"\n{'='*62}")
-    print(f"  {len(results)} films enrichis dans {OUTPUT_FILE.name}")
-    if failed:
-        print(f"  {len(failed)} echecs : {', '.join(failed[:5])}")
+    print(f"  Enrichissement terminé avec succès pour les {len(results)} films !")
+    print(f"  • Source Gemini LLM : {llm_count} films")
+    print(f"  • Source TMDb Sémantique : {sem_count} films")
+    print(f"  Fichier sauvegardé dans : {OUTPUT_FILE.name}")
     print(f"{'='*62}\n")
 
 

@@ -1,0 +1,10 @@
+# Dépendances Backend CineBook (FastAPI + SQLAlchemy)
+# Installe avec : pip install -r backend/requirements.txt
+
+sqlalchemy>=2.0.35        # ORM moderne 2.0 pour la base SQLite
+pydantic>=2.12.5          # Schémas de validation des données
+pytest>=8.0.0             # Tests unitaires
+
+# ── Jalon 3 (API FastAPI) ──────────────────────────────────────────────────────
+fastapi>=0.115.0          # Framework API REST asynchrone
+uvicorn[standard]>=0.30.0 # Serveur ASGI pour FastAPI
