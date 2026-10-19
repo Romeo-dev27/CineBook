@@ -40,6 +40,14 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+# ─── Flutter / Dart ──────────────────────────────────────────────────────────
+.dart_tool/
+*/.dart_tool/
+build/
+*/build/
+# ─── Scratch ─────────────────────────────────────────────────────────────────
+**/scratch/
 scratch/
-*/scratch/
+
+
 
