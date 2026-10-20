@@ -107,7 +107,7 @@ def seed_database():
             )
 
             if existing:
-                # Mise à jour
+                # Mise à jour idempotente
                 existing.title = data["title"]
                 existing.original_title = data.get("original_title", "")
                 existing.year = data["year"]
@@ -120,8 +120,22 @@ def seed_database():
                 existing.pacing = data.get("pacing", 0.5)
                 existing.genres = movie_genres
                 existing.atmosphere_tags = movie_tags
-                existing.color_palette = palette_obj
-                existing.feature_vector = vector_obj
+
+                if existing.color_palette:
+                    for attr in ["warmth", "coolness", "avg_brightness", "avg_saturation", "contrast", "colorfulness", "darkness_ratio", "vividness_ratio", "teal_ratio", "orange_ratio"]:
+                        setattr(existing.color_palette, attr, getattr(palette_obj, attr))
+                else:
+                    existing.color_palette = palette_obj
+
+                if existing.feature_vector:
+                    existing.feature_vector.genre_vec = vector_obj.genre_vec
+                    existing.feature_vector.atmosphere_vec = vector_obj.atmosphere_vec
+                    existing.feature_vector.visual_vec = vector_obj.visual_vec
+                    existing.feature_vector.era_scalar = vector_obj.era_scalar
+                    existing.feature_vector.pacing_scalar = vector_obj.pacing_scalar
+                else:
+                    existing.feature_vector = vector_obj
+
                 updated_count += 1
             else:
                 # Nouvelle insertion

@@ -29,8 +29,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# ─── Données locales ───────────────────────────────────────────────────────────
-data_pipeline/data/
+# ─── Données locales lourdes (TMDb dumps & backdrops) ─────────────────────────
+data_pipeline/data/movies_raw.json
+data_pipeline/data/_checkpoint*.json
+data_pipeline/data/backdrops/
 *.sqlite
 *.db
 

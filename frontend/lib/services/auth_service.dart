@@ -4,6 +4,11 @@ import 'package:http/http.dart' as http;
 import '../models/user.dart';
 
 class AuthService extends ChangeNotifier {
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://127.0.0.1:8000/api',
+  );
+
   final String baseUrl;
 
   User? _currentUser;
@@ -11,7 +16,7 @@ class AuthService extends ChangeNotifier {
   List<WatchlistItem> _watchlist = [];
   final Set<int> _watchlistedMovieIds = {};
 
-  AuthService({this.baseUrl = 'http://127.0.0.1:8000/api'});
+  AuthService({String? baseUrl}) : baseUrl = baseUrl ?? defaultBaseUrl;
 
   User? get currentUser => _currentUser;
   String? get token => _token;

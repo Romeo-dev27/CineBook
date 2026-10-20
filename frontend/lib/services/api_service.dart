@@ -4,9 +4,14 @@ import '../models/movie.dart';
 import '../models/recommendation.dart';
 
 class ApiService {
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://127.0.0.1:8000/api',
+  );
+
   final String baseUrl;
 
-  ApiService({this.baseUrl = 'http://127.0.0.1:8000/api'});
+  ApiService({String? baseUrl}) : baseUrl = baseUrl ?? defaultBaseUrl;
 
   /// Recherche ou liste des films avec filtres
   Future<List<MovieBrief>> getMovies({

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cinebook-api
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "./start.sh"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: PYTHONPATH
+        value: .
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
