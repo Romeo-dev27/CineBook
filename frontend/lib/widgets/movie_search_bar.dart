@@ -9,6 +9,9 @@ class MovieSearchBar extends StatefulWidget {
   final ValueChanged<MovieBrief>? onMovieSelected;
   final ValueChanged<List<MovieBrief>>? onSelectionChanged;
   final List<MovieBrief>? initialSelectedMovies;
+  final List<MovieBrief>? selectedSeeds;
+  final VoidCallback? onClearAllSeeds;
+  final ValueChanged<MovieBrief>? onSeedRemoved;
 
   const MovieSearchBar({
     super.key,
@@ -16,6 +19,9 @@ class MovieSearchBar extends StatefulWidget {
     this.onMovieSelected,
     this.onSelectionChanged,
     this.initialSelectedMovies,
+    this.selectedSeeds,
+    this.onClearAllSeeds,
+    this.onSeedRemoved,
   });
 
   @override
@@ -30,6 +36,8 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
   bool _isLoading = false;
   Timer? _debounce;
   bool _showDropdown = false;
+
+  List<MovieBrief> get _effectiveSeeds => widget.selectedSeeds ?? _selectedSeeds;
 
   @override
   void initState() {
@@ -91,26 +99,37 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
     // 2. Vider la barre de recherche et masquer les suggestions
     _controller.clear();
 
+    final updatedSeeds = List<MovieBrief>.from(_effectiveSeeds);
+    if (!updatedSeeds.any((m) => m.id == movie.id)) {
+      updatedSeeds.add(movie);
+    }
+
     setState(() {
       _searchResults = [];
       _showDropdown = false;
-
-      // 3. Ajouter à la liste des seeds si non présent
-      if (!_selectedSeeds.any((m) => m.id == movie.id)) {
-        _selectedSeeds.add(movie);
+      if (widget.selectedSeeds == null) {
+        _selectedSeeds.clear();
+        _selectedSeeds.addAll(updatedSeeds);
       }
     });
 
     // 4. Déclencher les callbacks
     widget.onMovieSelected?.call(movie);
-    widget.onSelectionChanged?.call(List.unmodifiable(_selectedSeeds));
+    widget.onSelectionChanged?.call(List.unmodifiable(updatedSeeds));
   }
 
   void _removeSeed(MovieBrief movie) {
+    final updatedSeeds = List<MovieBrief>.from(_effectiveSeeds);
+    updatedSeeds.removeWhere((m) => m.id == movie.id);
+
     setState(() {
-      _selectedSeeds.removeWhere((m) => m.id == movie.id);
+      if (widget.selectedSeeds == null) {
+        _selectedSeeds.removeWhere((m) => m.id == movie.id);
+      }
     });
-    widget.onSelectionChanged?.call(List.unmodifiable(_selectedSeeds));
+
+    widget.onSeedRemoved?.call(movie);
+    widget.onSelectionChanged?.call(List.unmodifiable(updatedSeeds));
   }
 
   @override
@@ -180,7 +199,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
                 ),
                 itemBuilder: (context, index) {
                   final movie = _searchResults[index];
-                  final isAlreadySelected = _selectedSeeds.any((m) => m.id == movie.id);
+                  final isAlreadySelected = _effectiveSeeds.any((m) => m.id == movie.id);
 
                   return Material(
                     color: Colors.transparent,
@@ -288,14 +307,14 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
           ),
 
         // ── Puces (Pills) des films sélectionnés (Seeds) ─────────────────────
-        if (_selectedSeeds.isNotEmpty) ...[
+        if (_effectiveSeeds.isNotEmpty) ...[
           const SizedBox(height: 12),
           Row(
             children: [
               const Icon(Icons.movie_filter_outlined, color: AppTheme.gold, size: 15),
               const SizedBox(width: 6),
               Text(
-                'Films sélectionnés (${_selectedSeeds.length}) :',
+                'Films sélectionnés (${_effectiveSeeds.length}) :',
                 style: const TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 12,
@@ -304,10 +323,13 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
                 ),
               ),
               const Spacer(),
-              if (_selectedSeeds.length > 1)
+              if (_effectiveSeeds.length > 1)
                 InkWell(
                   onTap: () {
-                    setState(() => _selectedSeeds.clear());
+                    if (widget.selectedSeeds == null) {
+                      setState(() => _selectedSeeds.clear());
+                    }
+                    widget.onClearAllSeeds?.call();
                     widget.onSelectionChanged?.call(const []);
                   },
                   borderRadius: BorderRadius.circular(4),
@@ -329,7 +351,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _selectedSeeds.map((movie) => _buildSeedPill(movie)).toList(),
+            children: _effectiveSeeds.map((movie) => _buildSeedPill(movie)).toList(),
           ),
         ],
       ],

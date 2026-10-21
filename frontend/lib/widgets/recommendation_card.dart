@@ -7,6 +7,8 @@ class RecommendationCard extends StatelessWidget {
   final int rank;
   final bool isWatchlisted;
   final VoidCallback? onToggleWatchlist;
+  final bool isSelectedSeed;
+  final VoidCallback? onToggleSeed;
 
   const RecommendationCard({
     super.key,
@@ -14,6 +16,8 @@ class RecommendationCard extends StatelessWidget {
     required this.rank,
     this.isWatchlisted = false,
     this.onToggleWatchlist,
+    this.isSelectedSeed = false,
+    this.onToggleSeed,
   });
 
 
@@ -58,18 +62,62 @@ class RecommendationCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Poster
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: item.posterUrl != null
-                      ? Image.network(
-                          item.posterUrl!,
-                          width: 85,
-                          height: 128,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                        )
-                      : _buildPlaceholder(),
+                // Poster + Bouton "Mixer +"
+                Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: item.posterUrl != null
+                          ? Image.network(
+                              item.posterUrl!,
+                              width: 85,
+                              height: 128,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                            )
+                          : _buildPlaceholder(),
+                    ),
+                    if (onToggleSeed != null) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: 85,
+                        height: 28,
+                        child: OutlinedButton(
+                          onPressed: onToggleSeed,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            side: BorderSide(
+                              color: isSelectedSeed ? AppTheme.gold : AppTheme.border,
+                              width: 1,
+                            ),
+                            backgroundColor: isSelectedSeed
+                                ? AppTheme.gold.withValues(alpha: 0.18)
+                                : AppTheme.surfaceElevated,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isSelectedSeed ? Icons.check : Icons.add,
+                                size: 12,
+                                color: isSelectedSeed ? AppTheme.gold : AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                isSelectedSeed ? 'Ajouté' : 'Mixer +',
+                                style: TextStyle(
+                                  color: isSelectedSeed ? AppTheme.gold : AppTheme.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(width: 16),
 
@@ -152,6 +200,22 @@ class RecommendationCard extends StatelessWidget {
                               constraints: const BoxConstraints(),
                               tooltip: isWatchlisted ? 'Retirer de la watchlist' : 'Ajouter à la watchlist',
                               onPressed: onToggleWatchlist,
+                            ),
+                          ],
+                          if (onToggleSeed != null) ...[
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: Icon(
+                                isSelectedSeed ? Icons.check_circle : Icons.playlist_add,
+                                color: isSelectedSeed ? AppTheme.gold : AppTheme.textMuted,
+                                size: 20,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: isSelectedSeed
+                                  ? 'Retirer des films sélectionnés'
+                                  : 'Ajouter à la sélection de mixage (+)',
+                              onPressed: onToggleSeed,
                             ),
                           ],
                         ],

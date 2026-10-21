@@ -70,6 +70,74 @@ void main() {
       expect(item.score, 0.885);
       expect(item.subScores['Ambiance'], 0.90);
       expect(item.explanation, contains('Ambiance très proche'));
+
+      // Test conversion vers MovieBrief pour "Add to list"
+      final brief = item.toMovieBrief();
+      expect(brief.id, 603);
+      expect(brief.title, 'The Matrix');
+      expect(brief.genres, ['Action', 'Science Fiction']);
+      expect(brief.atmosphereTags, ['dark', 'kinetic']);
+    });
+
+    test('RecommendResponse.fromJson parses multi-seeds reference_movies', () {
+      final json = {
+        'reference_movie': {
+          'id': 335984,
+          'title': 'Blade Runner 2049',
+          'year': 2017,
+          'vote_average': 7.6,
+          'vote_count': 13000,
+          'pacing': 0.65,
+          'genres': ['Science Fiction'],
+          'atmosphere_tags': ['cyberpunk'],
+        },
+        'reference_movies': [
+          {
+            'id': 335984,
+            'title': 'Blade Runner 2049',
+            'year': 2017,
+            'vote_average': 7.6,
+            'vote_count': 13000,
+            'pacing': 0.65,
+            'genres': ['Science Fiction'],
+            'atmosphere_tags': ['cyberpunk'],
+          },
+          {
+            'id': 603,
+            'title': 'The Matrix',
+            'year': 1999,
+            'vote_average': 8.2,
+            'vote_count': 24000,
+            'pacing': 0.75,
+            'genres': ['Action', 'Science Fiction'],
+            'atmosphere_tags': ['cyberpunk', 'dark'],
+          }
+        ],
+        'recommendations': [
+          {
+            'id': 76341,
+            'title': 'Mad Max: Fury Road',
+            'year': 2015,
+            'vote_average': 7.6,
+            'vote_count': 21000,
+            'genres': ['Action', 'Adventure'],
+            'atmosphere_tags': ['kinetic', 'dystopian'],
+            'pacing': 0.95,
+            'score': 0.81,
+            'base_similarity': 0.80,
+            'discovery_factor': 1.0,
+            'sub_scores': {'Rythme': 0.85},
+            'explanation': 'Vibe mixte (2 films) • Rythme très proche (85%)',
+          }
+        ],
+      };
+
+      final response = RecommendResponse.fromJson(json);
+      expect(response.referenceMovies.length, 2);
+      expect(response.referenceMovie.id, 335984);
+      expect(response.referenceMovies[1].id, 603);
+      expect(response.recommendations.length, 1);
+      expect(response.recommendations.first.title, 'Mad Max: Fury Road');
     });
   });
 }

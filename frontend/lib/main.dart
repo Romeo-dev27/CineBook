@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
 
-  MovieBrief? _selectedMovie;
+  List<MovieBrief> _selectedSeeds = [];
   RecommendationWeights _weights = RecommendationWeights.equilibre;
   double _discoverySlider = 0.3;
   int _topN = 5;
@@ -77,14 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _quickPicks = movies;
           _isLoadingQuickPicks = false;
-          if (movies.isNotEmpty && _selectedMovie == null) {
-            _selectedMovie = movies.firstWhere(
+          if (movies.isNotEmpty && _selectedSeeds.isEmpty) {
+            final defaultSeed = movies.firstWhere(
               (m) => m.title.contains('Blade Runner 2049'),
               orElse: () => movies.first,
             );
+            _selectedSeeds.add(defaultSeed);
           }
         });
-        if (_selectedMovie != null) {
+        if (_selectedSeeds.isNotEmpty) {
           _fetchRecommendations();
         }
       }
@@ -95,11 +96,53 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _toggleSeed(MovieBrief movie) {
+    final exists = _selectedSeeds.any((m) => m.id == movie.id);
+    setState(() {
+      if (exists) {
+        _selectedSeeds.removeWhere((m) => m.id == movie.id);
+      } else {
+        _selectedSeeds.add(movie);
+      }
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              exists ? Icons.remove_circle_outline : Icons.auto_awesome,
+              color: AppTheme.gold,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                exists
+                    ? '"${movie.title}" retiré du mix.'
+                    : '"${movie.title}" ajouté au mix ! (${_selectedSeeds.length} film${_selectedSeeds.length > 1 ? 's' : ''})',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.surfaceElevated,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    if (_selectedSeeds.isNotEmpty) {
+      _fetchRecommendations();
+    } else {
+      setState(() => _response = null);
+    }
+  }
+
   Future<void> _fetchRecommendations() async {
-    if (_selectedMovie == null) {
+    if (_selectedSeeds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Veuillez sélectionner un film de référence.'),
+          content: Text('Veuillez sélectionner au moins un film de référence.'),
           backgroundColor: AppTheme.ruby,
         ),
       );
@@ -113,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final res = await _apiService.getRecommendations(
-        movieId: _selectedMovie!.id,
+        movieIds: _selectedSeeds.map((m) => m.id).toList(),
         topN: _topN,
         weights: _weights,
         discoverySlider: _discoverySlider,
@@ -194,7 +237,11 @@ class _HomeScreenState extends State<HomeScreen> {
       endDrawer: WatchlistDrawer(
         authService: _authService,
         onSelectMovie: (movie) {
-          setState(() => _selectedMovie = movie);
+          setState(() {
+            if (!_selectedSeeds.any((s) => s.id == movie.id)) {
+              _selectedSeeds.add(movie);
+            }
+          });
           _fetchRecommendations();
         },
       ),
@@ -359,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          '1. Choisis ton film de référence',
+          '1. Choisis tes films de référence (Multi-sélection & Mix)',
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 16,
@@ -370,9 +417,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
         MovieSearchBar(
           apiService: _apiService,
-          onMovieSelected: (movie) {
-            setState(() => _selectedMovie = movie);
-            _fetchRecommendations();
+          selectedSeeds: _selectedSeeds,
+          onSelectionChanged: (seeds) {
+            setState(() => _selectedSeeds = List.from(seeds));
+            if (_selectedSeeds.isNotEmpty) {
+              _fetchRecommendations();
+            } else {
+              setState(() => _response = null);
+            }
+          },
+          onClearAllSeeds: () {
+            setState(() {
+              _selectedSeeds.clear();
+              _response = null;
+            });
           },
         ),
 
@@ -382,10 +440,15 @@ class _HomeScreenState extends State<HomeScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: _quickPicks.map((m) {
-                final isSelected = _selectedMovie?.id == m.id;
+                final isSelected = _selectedSeeds.any((s) => s.id == m.id);
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: ActionChip(
+                    avatar: Icon(
+                      isSelected ? Icons.check : Icons.add,
+                      size: 13,
+                      color: isSelected ? AppTheme.gold : AppTheme.textMuted,
+                    ),
                     label: Text(m.title),
                     backgroundColor: isSelected
                         ? AppTheme.gold.withValues(alpha: 0.2)
@@ -398,10 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 11,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
-                    onPressed: () {
-                      setState(() => _selectedMovie = m);
-                      _fetchRecommendations();
-                    },
+                    onPressed: () => _toggleSeed(m),
                   ),
                 );
               }).toList(),
@@ -411,16 +471,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
         const SizedBox(height: 16),
 
-        if (_selectedMovie != null) ...[
+        if (_selectedSeeds.length == 1) ...[
           ReferenceCard(
-            movie: _selectedMovie!,
+            movie: _selectedSeeds.first,
             onClear: () {
               setState(() {
-                _selectedMovie = null;
+                _selectedSeeds.clear();
                 _response = null;
               });
             },
           ),
+          const SizedBox(height: 20),
+        ] else if (_selectedSeeds.length > 1) ...[
+          _buildBlendedSeedsCard(),
           const SizedBox(height: 20),
         ],
 
@@ -459,12 +522,172 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 : const Icon(Icons.auto_awesome, color: Colors.black),
             label: Text(
-              _isLoading ? 'CALCUL DU COSINUS EN COURS...' : 'GÉNÉRER LES RECOMMANDATIONS 🎬',
+              _isLoading
+                  ? 'CALCUL DU COSINUS EN COURS...'
+                  : (_selectedSeeds.length > 1
+                      ? 'MIXER LES ${_selectedSeeds.length} FILMS 🎬'
+                      : 'GÉNÉRER LES RECOMMANDATIONS 🎬'),
             ),
             onPressed: _isLoading ? null : _fetchRecommendations,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBlendedSeedsCard() {
+    final allGenres = <String>{};
+    for (final m in _selectedSeeds) {
+      allGenres.addAll(m.genres);
+    }
+    final avgPacing = _selectedSeeds.map((m) => m.pacing).reduce((a, b) => a + b) / _selectedSeeds.length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.45), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.gold.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.hub_outlined, color: AppTheme.gold, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'VIBE MIXTE ACTIVE (${_selectedSeeds.length} FILMS)',
+                style: const TextStyle(
+                  color: AppTheme.gold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedSeeds.clear();
+                    _response = null;
+                  });
+                },
+                borderRadius: BorderRadius.circular(4),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Text(
+                    'Tout effacer',
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 11,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Moyenne mathématique (centroid) de vos films sélectionnés :',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _selectedSeeds.map((movie) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: movie.posterUrl != null
+                            ? Image.network(
+                                movie.posterUrl!,
+                                width: 54,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (c, e, s) => Container(
+                                  width: 54,
+                                  height: 80,
+                                  color: AppTheme.surfaceElevated,
+                                  child: const Icon(Icons.movie, size: 20, color: AppTheme.textMuted),
+                                ),
+                              )
+                            : Container(
+                                width: 54,
+                                height: 80,
+                                color: AppTheme.surfaceElevated,
+                                child: const Icon(Icons.movie, size: 20, color: AppTheme.textMuted),
+                              ),
+                      ),
+                      Positioned(
+                        top: 2,
+                        right: 2,
+                        child: InkWell(
+                          onTap: () => _toggleSeed(movie),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black87,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(2),
+                            child: const Icon(Icons.close, size: 12, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Text(
+                  'Rythme moyen : ${(avgPacing * 100).toInt()}%',
+                  style: const TextStyle(color: AppTheme.cyan, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ...allGenres.take(4).map((g) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(g, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                  )),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -547,6 +770,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final recs = _response!.recommendations;
 
+    final String title;
+    final String subtitle;
+    if (_selectedSeeds.length > 1) {
+      title = 'Top ${recs.length} Recommandations pour votre mix (${_selectedSeeds.length} films)';
+      subtitle = 'Moyenne mathématique pondérée sur : ${_selectedSeeds.map((s) => s.title).join(' + ')}';
+    } else {
+      final refTitle = _selectedSeeds.isNotEmpty
+          ? _selectedSeeds.first.title
+          : _response!.referenceMovie.title;
+      title = 'Top ${recs.length} Recommandations pour "$refTitle"';
+      subtitle = 'Classées par similarité mathématique multidimensionnelle (ambiance, visuel, rythme, genre, époque).';
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -554,30 +790,35 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const Icon(Icons.recommend, color: AppTheme.gold, size: 22),
             const SizedBox(width: 10),
-            Text(
-              'Top ${recs.length} Recommandations pour "${_response!.referenceMovie.title}"',
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Classées par similarité mathématique multidimensionnelle (ambiance, visuel, rythme, genre, époque).',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        Text(
+          subtitle,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 20),
 
         ...List.generate(recs.length, (index) {
           final item = recs[index];
+          final isSeed = _selectedSeeds.any((s) => s.id == item.id);
           return RecommendationCard(
             item: item,
             rank: index + 1,
             isWatchlisted: _authService.isMovieInWatchlist(item.id),
             onToggleWatchlist: () => _handleToggleWatchlist(item),
+            isSelectedSeed: isSeed,
+            onToggleSeed: () => _toggleSeed(item.toMovieBrief()),
           );
         }),
       ],

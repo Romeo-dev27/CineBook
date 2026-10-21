@@ -7,7 +7,7 @@ les palettes de couleurs et le moteur de recommandation.
 
 from typing import List, Dict, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 
 
@@ -82,10 +82,25 @@ class RecommendationWeights(BaseModel):
 
 
 class RecommendRequest(BaseModel):
-    movie_id: int = Field(description="ID TMDb du film de référence")
+    movie_id: Optional[int] = Field(default=None, description="ID TMDb d'un film de référence unique (legacy)")
+    movie_ids: Optional[List[int]] = Field(default=None, description="Liste d'IDs TMDb des films de référence (multi-seeds)")
     top_n: int = Field(default=5, ge=1, le=20, description="Nombre de recommandations souhaitées")
     weights: Optional[RecommendationWeights] = Field(default_factory=RecommendationWeights)
     discovery_slider: float = Field(default=0.3, ge=0.0, le=1.0, description="0.0: blockbusters tolérés, 1.0: boost maximal aux pépites méconnues")
+
+    def get_movie_ids(self) -> List[int]:
+        if self.movie_ids and len(self.movie_ids) > 0:
+            return list(dict.fromkeys(self.movie_ids))
+        if self.movie_id is not None:
+            return [self.movie_id]
+        return []
+
+    @model_validator(mode="after")
+    def validate_reference_seeds(self):
+        ids = self.get_movie_ids()
+        if not ids:
+            raise ValueError("Au moins un film de référence doit être spécifié (movie_id ou movie_ids).")
+        return self
 
 
 class RecommendationItem(BaseModel):
@@ -108,6 +123,7 @@ class RecommendationItem(BaseModel):
 
 class RecommendResponse(BaseModel):
     reference_movie: MovieBriefOut
+    reference_movies: List[MovieBriefOut] = Field(default_factory=list)
     recommendations: List[RecommendationItem]
 
 

@@ -122,6 +122,21 @@ class RecommendationItem {
 
   bool get isDiscoveryGem => discoveryFactor > 1.05;
 
+  MovieBrief toMovieBrief() {
+    return MovieBrief(
+      id: id,
+      title: title,
+      year: year,
+      posterPath: posterPath,
+      backdropPath: backdropPath,
+      voteAverage: voteAverage,
+      voteCount: voteCount,
+      pacing: pacing,
+      genres: List.unmodifiable(genres),
+      atmosphereTags: List.unmodifiable(atmosphereTags),
+    );
+  }
+
   factory RecommendationItem.fromJson(Map<String, dynamic> json) {
     final rawSub = json['sub_scores'] as Map<String, dynamic>? ?? {};
     final subMap = <String, double>{};
@@ -158,17 +173,33 @@ class RecommendationItem {
 /// Réponse complète du endpoint /api/recommend
 class RecommendResponse {
   final MovieBrief referenceMovie;
+  final List<MovieBrief> referenceMovies;
   final List<RecommendationItem> recommendations;
 
   RecommendResponse({
     required this.referenceMovie,
+    this.referenceMovies = const [],
     required this.recommendations,
   });
 
   factory RecommendResponse.fromJson(Map<String, dynamic> json) {
+    final refList = (json['reference_movies'] as List<dynamic>?)
+            ?.map((e) => MovieBrief.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    MovieBrief singleRef;
+    if (json['reference_movie'] != null) {
+      singleRef = MovieBrief.fromJson(json['reference_movie'] as Map<String, dynamic>);
+    } else if (refList.isNotEmpty) {
+      singleRef = refList.first;
+    } else {
+      throw Exception('Aucun film de référence dans la réponse de recommandation');
+    }
+
     return RecommendResponse(
-      referenceMovie: MovieBrief.fromJson(
-          json['reference_movie'] as Map<String, dynamic>),
+      referenceMovie: singleRef,
+      referenceMovies: refList.isNotEmpty ? refList : [singleRef],
       recommendations: (json['recommendations'] as List<dynamic>?)
               ?.map((e) =>
                   RecommendationItem.fromJson(e as Map<String, dynamic>))

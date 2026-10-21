@@ -43,18 +43,49 @@ class DatabaseRecommenderService:
     def recommend(
         self,
         db: Session,
-        reference_id: int,
+        reference_ids: Optional[List[int]] = None,
+        reference_id: Optional[int] = None,
         top_n: int = 5,
         weights: Optional[Dict[str, float]] = None,
         discovery_slider: float = 0.3
     ) -> List[Dict[str, Any]]:
-        # 1. Récupère le film de référence et son vecteur
-        ref_movie = db.query(Movie).filter(Movie.id == reference_id).first()
-        if not ref_movie or not ref_movie.feature_vector:
+        # 1. Normaliser et résoudre les IDs cibles
+        target_ids: List[int] = []
+        if reference_ids:
+            target_ids = list(dict.fromkeys(reference_ids))
+        elif reference_id is not None:
+            target_ids = [reference_id]
+
+        if not target_ids:
             return []
 
-        ref_vec = ref_movie.feature_vector
-        ref_tags = [t.name for t in ref_movie.atmosphere_tags]
+        # 2. Récupère les films de référence avec leurs vecteurs
+        ref_movies = (
+            db.query(Movie)
+            .join(Movie.feature_vector)
+            .filter(Movie.id.in_(target_ids))
+            .all()
+        )
+        if not ref_movies:
+            return []
+
+        # 3. Calcul de la moyenne mathématique (centroid average) pour créer le profil utilisateur mixte
+        genre_vecs = [np.array(m.feature_vector.genre_vec, dtype=float) for m in ref_movies]
+        atmo_vecs = [np.array(m.feature_vector.atmosphere_vec, dtype=float) for m in ref_movies]
+        vis_vecs = [np.array(m.feature_vector.visual_vec, dtype=float) for m in ref_movies]
+        era_scalars = [float(m.feature_vector.era_scalar) for m in ref_movies]
+        pacing_scalars = [float(m.feature_vector.pacing_scalar) for m in ref_movies]
+
+        mean_genre = np.mean(genre_vecs, axis=0).tolist()
+        mean_atmo = np.mean(atmo_vecs, axis=0).tolist()
+        mean_vis = np.mean(vis_vecs, axis=0).tolist()
+        mean_era = float(np.mean(era_scalars))
+        mean_pace = float(np.mean(pacing_scalars))
+
+        # Collecte l'ensemble des tags d'atmosphère de tous les films sélectionnés
+        all_ref_tags = set()
+        for m in ref_movies:
+            all_ref_tags.update(t.name for t in m.atmosphere_tags)
 
         # Poids configurés
         w = {
@@ -68,11 +99,11 @@ class DatabaseRecommenderService:
             w.update(weights)
         total_weight = sum(w.values())
 
-        # 2. Récupère tous les autres films avec leurs vecteurs
+        # 4. Récupère tous les autres films candidats (excluant TOUS les films sélectionnés)
         candidates = (
             db.query(Movie)
             .join(Movie.feature_vector)
-            .filter(Movie.id != reference_id)
+            .filter(~Movie.id.in_(target_ids))
             .all()
         )
 
@@ -83,11 +114,11 @@ class DatabaseRecommenderService:
             if not c_vec:
                 continue
 
-            sim_genre = self._cosine_sim(ref_vec.genre_vec, c_vec.genre_vec)
-            sim_atmo  = self._cosine_sim(ref_vec.atmosphere_vec, c_vec.atmosphere_vec)
-            sim_vis   = self._cosine_sim(ref_vec.visual_vec, c_vec.visual_vec)
-            sim_era   = self._scalar_sim(ref_vec.era_scalar, c_vec.era_scalar)
-            sim_pace  = self._scalar_sim(ref_vec.pacing_scalar, c_vec.pacing_scalar)
+            sim_genre = self._cosine_sim(mean_genre, c_vec.genre_vec)
+            sim_atmo  = self._cosine_sim(mean_atmo, c_vec.atmosphere_vec)
+            sim_vis   = self._cosine_sim(mean_vis, c_vec.visual_vec)
+            sim_era   = self._scalar_sim(mean_era, c_vec.era_scalar)
+            sim_pace  = self._scalar_sim(mean_pace, c_vec.pacing_scalar)
 
             base_similarity = (
                 w["genre"] * sim_genre +
@@ -114,9 +145,10 @@ class DatabaseRecommenderService:
             ]
 
             cand_tags = [t.name for t in cand.atmosphere_tags]
-            common_tags = list(set(ref_tags) & set(cand_tags))
+            common_tags = list(all_ref_tags & set(cand_tags))
 
-            explanation = " • ".join(top_reasons)
+            prefix = f"Vibe mixte ({len(ref_movies)} films) • " if len(ref_movies) > 1 else ""
+            explanation = prefix + " • ".join(top_reasons)
             if common_tags:
                 explanation += f" • Tags partagés : {', '.join(common_tags[:3])}"
             if discovery_factor > 1.05 and discovery_slider > 0.2:

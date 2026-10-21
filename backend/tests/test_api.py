@@ -206,3 +206,43 @@ def test_recommend_validation_error():
     }
     response = client.post("/api/recommend", json=payload)
     assert response.status_code == 422  # Unprocessable Entity
+
+
+def test_recommend_multi_seeds_blended():
+    """Vérifie la recommandation multi-films (mixage mathématique de plusieurs seeds)."""
+    # 335984 = Blade Runner 2049, 603 = Matrix
+    payload = {
+        "movie_ids": [335984, 603],
+        "top_n": 5,
+        "weights": {
+            "atmosphere": 1.8,
+            "visual": 1.5,
+            "genre": 1.2,
+            "era": 0.5,
+            "pacing": 0.8
+        },
+        "discovery_slider": 0.2
+    }
+    response = client.post("/api/recommend", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    # Vérification des films de référence multiples
+    assert "reference_movies" in data
+    assert len(data["reference_movies"]) == 2
+    ref_ids = [m["id"] for m in data["reference_movies"]]
+    assert 335984 in ref_ids
+    assert 603 in ref_ids
+
+    # Vérification des recommandations
+    recs = data["recommendations"]
+    assert len(recs) == 5
+
+    # Aucun des films de référence ne doit être présent dans les résultats
+    rec_ids = [r["id"] for r in recs]
+    assert 335984 not in rec_ids
+    assert 603 not in rec_ids
+
+    # L'explication doit refléter la vibe mixte
+    assert "Vibe mixte (2 films)" in recs[0]["explanation"]
+

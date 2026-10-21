@@ -96,16 +96,31 @@ class ApiService {
     }
   }
 
-  /// Appel au moteur de recommandation
+  /// Appel au moteur de recommandation (supporte un film unique ou une liste multi-seeds)
   Future<RecommendResponse> getRecommendations({
-    required int movieId,
+    int? movieId,
+    List<int>? movieIds,
     int topN = 5,
     required RecommendationWeights weights,
     double discoverySlider = 0.3,
   }) async {
     final uri = Uri.parse('$baseUrl/recommend');
+    
+    // Résolution de la liste des IDs sélectionnés
+    final resolvedIds = <int>[];
+    if (movieIds != null && movieIds.isNotEmpty) {
+      resolvedIds.addAll(movieIds);
+    } else if (movieId != null) {
+      resolvedIds.add(movieId);
+    }
+
+    if (resolvedIds.isEmpty) {
+      throw Exception('Au moins un film de référence doit être spécifié.');
+    }
+
     final body = jsonEncode({
-      'movie_id': movieId,
+      'movie_ids': resolvedIds,
+      'movie_id': resolvedIds.first,
       'top_n': topN,
       'weights': weights.toJson(),
       'discovery_slider': discoverySlider,
