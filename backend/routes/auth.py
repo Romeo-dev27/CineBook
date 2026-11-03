@@ -5,10 +5,10 @@ auth.py — Routes REST pour l'inscription, la connexion et le profil utilisateu
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models import User
-from backend.schemas import UserRegister, UserLogin, UserOut, TokenOut
-from backend.auth import hash_password, verify_password, create_access_token, get_current_user
+from database import get_db
+from models import User
+from schemas import UserRegister, UserLogin, UserOut, TokenOut
+from auth import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["Authentification & Comptes"])
 

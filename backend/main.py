@@ -8,17 +8,25 @@ Configure :
 - Les endpoints de statut et santé (/ et /health)
 """
 
+import sys
+from pathlib import Path
+
+# Assure l'import direct des modules locaux quand Render définit Root Directory sur 'backend'
+_backend_dir = str(Path(__file__).resolve().parent)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from database import engine, get_db, Base
-from backend.models import Movie
-from backend.routes.movies import router as movies_router
-from backend.routes.recommend import router as recommend_router
-from backend.routes.auth import router as auth_router
-from backend.routes.watchlist import router as watchlist_router
+from models import Movie
+from routes.movies import router as movies_router
+from routes.recommend import router as recommend_router
+from routes.auth import router as auth_router
+from routes.watchlist import router as watchlist_router
 
 # Assurer la création des tables si la DB n'existe pas encore (y compris users et watchlist_items)
 Base.metadata.create_all(bind=engine)

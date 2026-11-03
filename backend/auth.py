@@ -19,8 +19,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models import User
+from database import get_db
+from models import User
 
 # Configuration des clés
 JWT_SECRET = os.getenv("JWT_SECRET", "cinebook_super_secret_jwt_key_2026_dev")

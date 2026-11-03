@@ -10,8 +10,12 @@ Vérifie :
 """
 
 import pytest
-from backend.database import SessionLocal, engine
-from backend.models import Movie, Genre, AtmosphereTag, MovieColorPalette, MovieVector
+try:
+    from database import SessionLocal, engine
+    from models import Movie, Genre, AtmosphereTag, MovieColorPalette, MovieVector
+except ImportError:
+    from backend.database import SessionLocal, engine
+    from backend.models import Movie, Genre, AtmosphereTag, MovieColorPalette, MovieVector
 
 
 @pytest.fixture(scope="module")

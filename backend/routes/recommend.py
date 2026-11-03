@@ -9,15 +9,15 @@ leurs explications détaillées ("Pourquoi ce film ?").
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models import Movie
-from backend.schemas import (
+from database import get_db
+from models import Movie
+from schemas import (
     RecommendRequest,
     RecommendResponse,
     MovieBriefOut,
     RecommendationItem,
 )
-from backend.recommender_service import recommender_service
+from recommender_service import recommender_service
 
 router = APIRouter(prefix="/api", tags=["Recommandations"])
 

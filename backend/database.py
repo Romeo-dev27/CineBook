@@ -11,11 +11,27 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Charge les variables d'environnement depuis le .env à la racine
+# Charge les variables d'environnement depuis le .env à la racine ou dans backend
 ROOT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT_DIR / ".env")
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{ROOT_DIR / 'cinebook.db'}")
+_env_db_url = os.getenv("DATABASE_URL")
+if not _env_db_url or _env_db_url == "sqlite:///./cinebook.db":
+    # Assure un chemin absolu vers cinebook.db pour éviter la création d'une DB vide
+    # selon le répertoire d'exécution (root vs backend)
+    db_path = ROOT_DIR / "cinebook.db"
+    if not db_path.exists() and (Path(__file__).resolve().parent / "cinebook.db").exists():
+        db_path = Path(__file__).resolve().parent / "cinebook.db"
+    DATABASE_URL = f"sqlite:///{db_path}"
+elif _env_db_url.startswith("sqlite:///./"):
+    rel_path = _env_db_url.replace("sqlite:///./", "")
+    db_path = ROOT_DIR / rel_path
+    if not db_path.exists() and (Path(__file__).resolve().parent / rel_path).exists():
+        db_path = Path(__file__).resolve().parent / rel_path
+    DATABASE_URL = f"sqlite:///{db_path}"
+else:
+    DATABASE_URL = _env_db_url
 
 # Création du moteur SQLite
 # check_same_thread=False permet à FastAPI d'utiliser la session sur différents threads

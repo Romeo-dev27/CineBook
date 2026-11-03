@@ -7,9 +7,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models import Movie, Genre, AtmosphereTag
-from backend.schemas import MovieBriefOut, MovieDetailOut, GenreOut, AtmosphereTagOut
+from database import get_db
+from models import Movie, Genre, AtmosphereTag
+from schemas import MovieBriefOut, MovieDetailOut, GenreOut, AtmosphereTagOut
 
 router = APIRouter(prefix="/api", tags=["Films & Filtres"])
 

@@ -6,7 +6,8 @@ les 142 films avec leurs genres, tags, palettes et vecteurs
 dans la base de données SQLite locale (cinebook.db).
 
 Usage :
-  python -m backend.seed_db
+  python seed_db.py  (depuis le dossier backend)
+  ou : python -m backend.seed_db
 """
 
 import io
@@ -18,8 +19,12 @@ from pathlib import Path
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from backend.database import engine, SessionLocal, Base
-from backend.models import Movie, Genre, AtmosphereTag, MovieColorPalette, MovieVector
+_backend_dir = str(Path(__file__).resolve().parent)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
+
+from database import engine, SessionLocal, Base
+from models import Movie, Genre, AtmosphereTag, MovieColorPalette, MovieVector
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data_pipeline" / "data"

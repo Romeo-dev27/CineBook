@@ -14,7 +14,7 @@ from sqlalchemy import (
     Column, Integer, String, Float, Text, ForeignKey, Table, JSON, DateTime, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
-from backend.database import Base
+from database import Base
 
 
 # ── Tables d'association Many-to-Many ──────────────────────────────────────────

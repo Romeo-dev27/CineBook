@@ -10,7 +10,7 @@ import math
 from typing import List, Dict, Any, Optional
 import numpy as np
 from sqlalchemy.orm import Session
-from backend.models import Movie, MovieVector
+from models import Movie, MovieVector
 
 
 class DatabaseRecommenderService:

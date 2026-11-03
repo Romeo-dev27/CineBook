@@ -5,7 +5,10 @@ test_auth_watchlist.py — Tests d'intégration automatisés pour l'authentifica
 import pytest
 import uuid
 from fastapi.testclient import TestClient
-from backend.main import app
+try:
+    from main import app
+except ImportError:
+    from backend.main import app
 
 client = TestClient(app)
 
