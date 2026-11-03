@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from backend.database import engine, get_db, Base
+from database import engine, get_db, Base
 from backend.models import Movie
 from backend.routes.movies import router as movies_router
 from backend.routes.recommend import router as recommend_router
