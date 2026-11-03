@@ -45,6 +45,16 @@ class ColorPaletteOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# ── Plateformes de Streaming (Watch Providers) ─────────────────────────────────
+
+class WatchProviderOut(BaseModel):
+    id: int = Field(description="ID TMDb de la plateforme de streaming")
+    name: str = Field(description="Nom de la plateforme (ex: Netflix, Amazon Prime Video, Disney+)")
+    logo_path: Optional[str] = Field(default=None, description="Chemin d'icône/logo TMDb")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # ── Films ──────────────────────────────────────────────────────────────────────
 
 class MovieBriefOut(BaseModel):
@@ -58,6 +68,7 @@ class MovieBriefOut(BaseModel):
     pacing: float
     genres: List[str] = Field(default_factory=list)
     atmosphere_tags: List[str] = Field(default_factory=list)
+    streaming_providers: List[WatchProviderOut] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -119,6 +130,7 @@ class RecommendationItem(BaseModel):
     discovery_factor: float
     sub_scores: Dict[str, float]
     explanation: str
+    streaming_providers: List[WatchProviderOut] = Field(default_factory=list)
 
 
 class RecommendResponse(BaseModel):

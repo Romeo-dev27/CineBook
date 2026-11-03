@@ -1,3 +1,35 @@
+/// Plateforme de streaming (TMDb Watch Provider)
+class WatchProvider {
+  final int id;
+  final String name;
+  final String? logoPath;
+
+  const WatchProvider({
+    required this.id,
+    required this.name,
+    this.logoPath,
+  });
+
+  String? get logoUrl =>
+      logoPath != null && logoPath!.isNotEmpty
+          ? 'https://image.tmdb.org/t/p/w92$logoPath'
+          : null;
+
+  factory WatchProvider.fromJson(Map<String, dynamic> json) {
+    return WatchProvider(
+      id: (json['id'] as num?)?.toInt() ?? (json['provider_id'] as num?)?.toInt() ?? 0,
+      name: json['name'] as String? ?? (json['provider_name'] as String? ?? ''),
+      logoPath: json['logo_path'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'logo_path': logoPath,
+      };
+}
+
 /// Modèles de données pour les films CineBook
 class MovieBrief {
   final int id;
@@ -10,6 +42,7 @@ class MovieBrief {
   final double pacing;
   final List<String> genres;
   final List<String> atmosphereTags;
+  final List<WatchProvider> streamingProviders;
 
   MovieBrief({
     required this.id,
@@ -22,6 +55,7 @@ class MovieBrief {
     required this.pacing,
     required this.genres,
     required this.atmosphereTags,
+    this.streamingProviders = const [],
   });
 
   String? get posterUrl =>
@@ -50,6 +84,10 @@ class MovieBrief {
           [],
       atmosphereTags: (json['atmosphere_tags'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      streamingProviders: (json['streaming_providers'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );

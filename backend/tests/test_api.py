@@ -249,3 +249,25 @@ def test_recommend_multi_seeds_blended():
     # L'explication doit refléter la vibe mixte
     assert "Vibe mixte (2 films)" in recs[0]["explanation"]
 
+
+def test_movie_streaming_providers():
+    """Vérifie la présence et la structure des badges de streaming pour un film."""
+    # 335984 = Blade Runner 2049
+    response = client.get("/api/movies/335984/providers")
+    assert response.status_code == 200
+    providers = response.json()
+    assert isinstance(providers, list)
+    if providers:
+        p = providers[0]
+        assert "id" in p
+        assert "name" in p
+        assert "logo_path" in p
+
+    # Vérification que GET /api/movies/{id} contient streaming_providers
+    detail_res = client.get("/api/movies/335984")
+    assert detail_res.status_code == 200
+    detail = detail_res.json()
+    assert "streaming_providers" in detail
+    assert isinstance(detail["streaming_providers"], list)
+
+

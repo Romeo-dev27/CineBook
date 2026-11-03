@@ -139,5 +139,32 @@ void main() {
       expect(response.recommendations.length, 1);
       expect(response.recommendations.first.title, 'Mad Max: Fury Road');
     });
+
+    test('WatchProvider.fromJson and streamingProviders parsing', () {
+      final json = {
+        'id': 8,
+        'name': 'Netflix',
+        'logo_path': '/rK1KljqmbvO9HQa1PBFLILWah72.png',
+      };
+      final provider = WatchProvider.fromJson(json);
+      expect(provider.id, 8);
+      expect(provider.name, 'Netflix');
+      expect(provider.logoUrl, contains('https://image.tmdb.org/t/p/w92/'));
+
+      final movieJson = {
+        'id': 157336,
+        'title': 'Interstellar',
+        'year': 2014,
+        'vote_average': 8.4,
+        'vote_count': 34000,
+        'pacing': 0.6,
+        'genres': ['Adventure', 'Drama', 'Science Fiction'],
+        'atmosphere_tags': ['epic', 'melancholic'],
+        'streaming_providers': [json],
+      };
+      final movie = MovieBrief.fromJson(movieJson);
+      expect(movie.streamingProviders.length, 1);
+      expect(movie.streamingProviders.first.name, 'Netflix');
+    });
   });
 }

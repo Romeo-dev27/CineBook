@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Movie, Genre, AtmosphereTag
-from schemas import MovieBriefOut, MovieDetailOut, GenreOut, AtmosphereTagOut
+from schemas import MovieBriefOut, MovieDetailOut, GenreOut, AtmosphereTagOut, WatchProviderOut
+from watch_providers_service import watch_providers_service
 
 router = APIRouter(prefix="/api", tags=["Films & Filtres"])
 
@@ -66,7 +67,7 @@ def get_movies(
     # Pagination
     paginated = movies[skip : skip + limit]
 
-    # Sérialisation propre
+    # Sérialisation propre avec plateformes de streaming
     return [
         MovieBriefOut(
             id=m.id,
@@ -78,7 +79,10 @@ def get_movies(
             vote_count=m.vote_count,
             pacing=m.pacing,
             genres=[g.name for g in m.genres],
-            atmosphere_tags=[t.name for t in m.atmosphere_tags]
+            atmosphere_tags=[t.name for t in m.atmosphere_tags],
+            streaming_providers=[
+                WatchProviderOut(**p) for p in watch_providers_service.get_providers_for_movie(m.id)
+            ]
         )
         for m in paginated
     ]
@@ -110,6 +114,10 @@ def get_movie_detail(movie_id: int, db: Session = Depends(get_db)):
             "orange_ratio": p.orange_ratio,
         }
 
+    detail_providers = [
+        WatchProviderOut(**p) for p in watch_providers_service.get_providers_for_movie(movie.id)
+    ]
+
     return MovieDetailOut(
         id=movie.id,
         title=movie.title,
@@ -124,5 +132,24 @@ def get_movie_detail(movie_id: int, db: Session = Depends(get_db)):
         pacing=movie.pacing,
         genres=[g.name for g in movie.genres],
         atmosphere_tags=[t.name for t in movie.atmosphere_tags],
-        color_palette=palette_out
+        color_palette=palette_out,
+        streaming_providers=detail_providers
     )
+
+
+@router.get("/movies/{movie_id}/providers", response_model=List[WatchProviderOut], summary="Plateformes de streaming d'un film")
+def get_movie_streaming_providers(
+    movie_id: int,
+    country: str = Query("FR", description="Code pays ISO 3166-1 (défaut : FR)"),
+    db: Session = Depends(get_db)
+):
+    """Retourne la liste des plateformes de streaming (SVOD) où le film est disponible."""
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Film avec l'ID {movie_id} introuvable."
+        )
+
+    providers = watch_providers_service.get_providers_for_movie(movie_id, country=country)
+    return [WatchProviderOut(**p) for p in providers]

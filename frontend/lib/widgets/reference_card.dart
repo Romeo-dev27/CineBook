@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/movie.dart';
 import '../theme/app_theme.dart';
+import 'streaming_badges.dart';
 
 class ReferenceCard extends StatelessWidget {
   final MovieBrief movie;
@@ -173,6 +174,14 @@ class ReferenceCard extends StatelessWidget {
                           );
                         }).toList(),
                       ),
+                      if (movie.streamingProviders.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        StreamingBadges(
+                          providers: movie.streamingProviders,
+                          logoSize: 22.0,
+                          showHeader: true,
+                        ),
+                      ],
                     ],
                   ),
                 ),

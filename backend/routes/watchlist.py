@@ -13,8 +13,10 @@ from schemas import (
     WatchlistUpdateRequest,
     WatchlistItemOut,
     MovieBriefOut,
+    WatchProviderOut,
 )
 from auth import get_current_user
+from watch_providers_service import watch_providers_service
 
 router = APIRouter(prefix="/api/watchlist", tags=["Watchlist & Favoris"])
 
@@ -31,7 +33,10 @@ def _to_watchlist_item_out(item: WatchlistItem) -> WatchlistItemOut:
         vote_count=m.vote_count,
         pacing=m.pacing,
         genres=[g.name for g in m.genres],
-        atmosphere_tags=[t.name for t in m.atmosphere_tags]
+        atmosphere_tags=[t.name for t in m.atmosphere_tags],
+        streaming_providers=[
+            WatchProviderOut(**p) for p in watch_providers_service.get_providers_for_movie(m.id)
+        ]
     )
     return WatchlistItemOut(
         id=item.id,

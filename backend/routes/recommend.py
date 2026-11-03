@@ -16,8 +16,10 @@ from schemas import (
     RecommendResponse,
     MovieBriefOut,
     RecommendationItem,
+    WatchProviderOut,
 )
 from recommender_service import recommender_service
+from watch_providers_service import watch_providers_service
 
 router = APIRouter(prefix="/api", tags=["Recommandations"])
 
@@ -64,7 +66,7 @@ def recommend_movies(
         discovery_slider=req.discovery_slider
     )
 
-    # 5. Formater les films de référence
+    # 5. Formater les films de référence avec plateformes de streaming
     ref_briefs = [
         MovieBriefOut(
             id=m.id,
@@ -76,12 +78,20 @@ def recommend_movies(
             vote_count=m.vote_count,
             pacing=m.pacing,
             genres=[g.name for g in m.genres],
-            atmosphere_tags=[t.name for t in m.atmosphere_tags]
+            atmosphere_tags=[t.name for t in m.atmosphere_tags],
+            streaming_providers=[
+                WatchProviderOut(**p) for p in watch_providers_service.get_providers_for_movie(m.id)
+            ]
         )
         for m in ordered_ref_movies
     ]
 
-    # 6. Formater la liste de recommandations
+    # 6. Formater la liste de recommandations enrichie avec plateformes de streaming
+    for item in raw_results:
+        if "streaming_providers" not in item:
+            item["streaming_providers"] = [
+                WatchProviderOut(**p) for p in watch_providers_service.get_providers_for_movie(item["id"])
+            ]
     items = [RecommendationItem(**item) for item in raw_results]
 
     return RecommendResponse(

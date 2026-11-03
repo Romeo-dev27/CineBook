@@ -91,6 +91,7 @@ class RecommendationItem {
   final double discoveryFactor;
   final Map<String, double> subScores;
   final String explanation;
+  final List<WatchProvider> streamingProviders;
 
   RecommendationItem({
     required this.id,
@@ -108,6 +109,7 @@ class RecommendationItem {
     required this.discoveryFactor,
     required this.subScores,
     required this.explanation,
+    this.streamingProviders = const [],
   });
 
   String? get posterUrl =>
@@ -134,6 +136,7 @@ class RecommendationItem {
       pacing: pacing,
       genres: List.unmodifiable(genres),
       atmosphereTags: List.unmodifiable(atmosphereTags),
+      streamingProviders: streamingProviders,
     );
   }
 
@@ -166,6 +169,10 @@ class RecommendationItem {
       discoveryFactor: (json['discovery_factor'] as num?)?.toDouble() ?? 1.0,
       subScores: subMap,
       explanation: json['explanation'] as String? ?? '',
+      streamingProviders: (json['streaming_providers'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

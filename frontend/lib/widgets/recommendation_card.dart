@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/recommendation.dart';
 import '../theme/app_theme.dart';
+import 'streaming_badges.dart';
 
 class RecommendationCard extends StatelessWidget {
   final RecommendationItem item;
@@ -288,6 +289,16 @@ class RecommendationCard extends StatelessWidget {
                           );
                         }).toList(),
                       ),
+
+                      // Badges de streaming (TMDb Watch Providers)
+                      if (item.streamingProviders.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        StreamingBadges(
+                          providers: item.streamingProviders,
+                          logoSize: 22.0,
+                          showHeader: true,
+                        ),
+                      ],
                     ],
                   ),
                 ),

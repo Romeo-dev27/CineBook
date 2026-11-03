@@ -3,6 +3,7 @@ import '../models/movie.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import 'streaming_badges.dart';
 
 class WatchlistDrawer extends StatelessWidget {
   final AuthService authService;
@@ -207,6 +208,14 @@ class WatchlistDrawer extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (movie.streamingProviders.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    StreamingBadges(
+                      providers: movie.streamingProviders,
+                      logoSize: 18.0,
+                      showHeader: false,
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [
