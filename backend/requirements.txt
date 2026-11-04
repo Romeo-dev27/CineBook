@@ -13,4 +13,5 @@ httpx>=0.27.0             # Client HTTP pour TestClient et tests d'intégration 
 # ── Jalon 5 (Auth & Watchlists) ────────────────────────────────────────────────
 pyjwt>=2.8.0              # Création et validation des JSON Web Tokens (compatible Supabase)
 
-
+# ── Recommender System ────────────────────────────────────────────────────────
+numpy>=1.26.4,<2.0
