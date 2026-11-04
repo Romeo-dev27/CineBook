@@ -18,6 +18,7 @@ class ApiService {
     String? query,
     String? genre,
     String? tag,
+    String? provider,
     int limit = 30,
     int skip = 0,
   }) async {
@@ -33,6 +34,9 @@ class ApiService {
     }
     if (tag != null && tag.isNotEmpty) {
       queryParams['tag'] = tag;
+    }
+    if (provider != null && provider.isNotEmpty && provider != 'Tous') {
+      queryParams['provider'] = provider;
     }
 
     final uri = Uri.parse('$baseUrl/movies').replace(queryParameters: queryParams);
@@ -103,6 +107,7 @@ class ApiService {
     int topN = 5,
     required RecommendationWeights weights,
     double discoverySlider = 0.3,
+    String? provider,
   }) async {
     final uri = Uri.parse('$baseUrl/recommend');
     
@@ -118,13 +123,18 @@ class ApiService {
       throw Exception('Au moins un film de référence doit être spécifié.');
     }
 
-    final body = jsonEncode({
+    final payloadMap = <String, dynamic>{
       'movie_ids': resolvedIds,
       'movie_id': resolvedIds.first,
       'top_n': topN,
       'weights': weights.toJson(),
       'discovery_slider': discoverySlider,
-    });
+    };
+    if (provider != null && provider.isNotEmpty && provider != 'Tous') {
+      payloadMap['provider'] = provider;
+    }
+
+    final body = jsonEncode(payloadMap);
 
     try {
       final response = await http

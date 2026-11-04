@@ -98,6 +98,7 @@ class RecommendRequest(BaseModel):
     top_n: int = Field(default=5, ge=1, le=20, description="Nombre de recommandations souhaitées")
     weights: Optional[RecommendationWeights] = Field(default_factory=RecommendationWeights)
     discovery_slider: float = Field(default=0.3, ge=0.0, le=1.0, description="0.0: blockbusters tolérés, 1.0: boost maximal aux pépites méconnues")
+    provider: Optional[str] = Field(default=None, description="Filtre optionnel par plateforme de streaming (ex: Netflix, Amazon Prime Video, Apple TV)")
 
     def get_movie_ids(self) -> List[int]:
         if self.movie_ids and len(self.movie_ids) > 0:

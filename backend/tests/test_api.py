@@ -263,6 +263,36 @@ def test_movie_streaming_providers():
         assert "name" in p
         assert "logo_path" in p
 
+
+def test_get_movies_filter_by_provider():
+    """Vérifie que le filtrage des films par plateforme de streaming fonctionne."""
+    response = client.get("/api/movies?provider=Netflix")
+    assert response.status_code == 200
+    movies = response.json()
+    assert len(movies) > 0
+    for m in movies:
+        prov_names = [p["name"].lower() for p in m["streaming_providers"]]
+        assert any("netflix" in name for name in prov_names)
+
+
+def test_recommend_filter_by_provider():
+    """Vérifie que la recommandation avec filtre plateforme renvoie uniquement les films disponibles dessus."""
+    payload = {
+        "movie_id": 335984,  # Blade Runner 2049
+        "top_n": 3,
+        "provider": "Netflix",
+        "discovery_slider": 0.2
+    }
+    response = client.post("/api/recommend", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    recs = data["recommendations"]
+    assert len(recs) > 0
+    for r in recs:
+        prov_names = [p["name"].lower() for p in r["streaming_providers"]]
+        assert any("netflix" in name for name in prov_names)
+
+
     # Vérification que GET /api/movies/{id} contient streaming_providers
     detail_res = client.get("/api/movies/335984")
     assert detail_res.status_code == 200

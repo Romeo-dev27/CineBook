@@ -63,7 +63,8 @@ def recommend_movies(
         reference_ids=target_ids,
         top_n=req.top_n,
         weights=weights_dict,
-        discovery_slider=req.discovery_slider
+        discovery_slider=req.discovery_slider,
+        provider=req.provider
     )
 
     # 5. Formater les films de référence avec plateformes de streaming

@@ -14,6 +14,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "240": [
@@ -31,6 +36,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "769": [
@@ -43,9 +53,20 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "680": [],
+  "680": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "598": [
     {
       "id": 119,
@@ -68,10 +89,27 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "6977": [],
-  "496243": [],
+  "6977": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "496243": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "670": [
     {
       "id": 1967,
@@ -87,6 +125,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "274": [
@@ -109,6 +152,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "949": [
@@ -121,6 +169,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "1422": [
@@ -153,6 +206,11 @@
       "id": 2358,
       "name": "Lionsgate+",
       "logo_path": "/1356slxu4QrHOMrEVDKHJXRo5sW.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "829": [
@@ -170,6 +228,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "500": [
@@ -182,6 +245,11 @@
       "id": 2358,
       "name": "Lionsgate+",
       "logo_path": "/1356slxu4QrHOMrEVDKHJXRo5sW.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "68718": [
@@ -194,6 +262,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "335984": [
@@ -216,6 +289,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "78": [
@@ -250,6 +328,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "27205": [
@@ -257,6 +340,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "157336": [
@@ -269,9 +357,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "264660": [],
+  "264660": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "329865": [
     {
       "id": 1967,
@@ -282,6 +381,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "152601": [
@@ -289,6 +393,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "17431": [
@@ -296,6 +405,11 @@
       "id": 119,
       "name": "Amazon Prime Video",
       "logo_path": "/gMZdpavHmxFNnLpMHwVxfqeux2g.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "9693": [
@@ -318,6 +432,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "348": [
@@ -325,6 +444,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "62": [
@@ -332,6 +456,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "10681": [
@@ -339,6 +468,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "438631": [
@@ -346,9 +480,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "300668": [],
+  "300668": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "694": [
     {
       "id": 389,
@@ -369,6 +514,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "419430": [
@@ -386,6 +536,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "493922": [
@@ -393,6 +548,11 @@
       "id": 119,
       "name": "Amazon Prime Video",
       "logo_path": "/gMZdpavHmxFNnLpMHwVxfqeux2g.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "530385": [
@@ -410,6 +570,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "447332": [
@@ -432,6 +597,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "11906": [
@@ -451,6 +621,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "310131": [
@@ -458,9 +633,20 @@
       "id": 119,
       "name": "Amazon Prime Video",
       "logo_path": "/gMZdpavHmxFNnLpMHwVxfqeux2g.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "270303": [],
+  "270303": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "97370": [
     {
       "id": 389,
@@ -476,14 +662,30 @@
       "id": 1736,
       "name": "Shadowz",
       "logo_path": "/ds5Gvv5tN46cuRCkb8zPXZ5UABD.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "381283": [],
+  "381283": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "155": [
     {
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "475557": [
@@ -496,9 +698,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "146233": [],
+  "146233": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "210577": [
     {
       "id": 337,
@@ -509,6 +722,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "242582": [
@@ -526,9 +744,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "273481": [],
+  "273481": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "64690": [
     {
       "id": 389,
@@ -559,6 +788,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "1949": [
@@ -571,9 +805,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "424": [],
+  "424": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "637": [],
   "389": [
     {
@@ -585,6 +830,11 @@
       "id": 588,
       "name": "MGM",
       "logo_path": "/yAWdNyJunfCeyIR14tSE9fEFF3i.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "13": [
@@ -602,6 +852,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "153": [
@@ -634,9 +889,20 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "334541": [],
+  "334541": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "376867": [
     {
       "id": 11,
@@ -677,6 +943,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "492188": [
@@ -692,10 +963,27 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "428449": [],
-  "370755": [],
+  "428449": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "370755": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "44214": [
     {
       "id": 337,
@@ -716,6 +1004,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "244786": [
@@ -738,6 +1031,11 @@
       "id": 310,
       "name": "LaCinetek",
       "logo_path": "/gONX9BWf5xEK9UgXDtVWouq7eSu.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "194662": [
@@ -760,14 +1058,55 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "76": [],
-  "80": [],
-  "132344": [],
-  "38": [],
-  "313369": [],
-  "142": [],
+  "76": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "80": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "132344": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "38": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "313369": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "142": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "531428": [
     {
       "id": 531,
@@ -783,6 +1122,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "843": [
@@ -795,6 +1139,11 @@
       "id": 310,
       "name": "LaCinetek",
       "logo_path": "/gONX9BWf5xEK9UgXDtVWouq7eSu.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "398818": [
@@ -807,6 +1156,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "46705": [
@@ -819,6 +1173,11 @@
       "id": 2358,
       "name": "Lionsgate+",
       "logo_path": "/1356slxu4QrHOMrEVDKHJXRo5sW.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "129": [
@@ -826,6 +1185,11 @@
       "id": 8,
       "name": "Netflix",
       "logo_path": "/rK1KljqmbvO9HQa1PBFLILWah72.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "128": [
@@ -833,6 +1197,11 @@
       "id": 8,
       "name": "Netflix",
       "logo_path": "/rK1KljqmbvO9HQa1PBFLILWah72.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "8392": [
@@ -840,6 +1209,11 @@
       "id": 8,
       "name": "Netflix",
       "logo_path": "/rK1KljqmbvO9HQa1PBFLILWah72.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "12477": [
@@ -854,6 +1228,11 @@
       "id": 8,
       "name": "Netflix",
       "logo_path": "/rK1KljqmbvO9HQa1PBFLILWah72.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "81": [
@@ -861,6 +1240,11 @@
       "id": 8,
       "name": "Netflix",
       "logo_path": "/rK1KljqmbvO9HQa1PBFLILWah72.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "149": [
@@ -912,6 +1296,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "354912": [
@@ -919,9 +1308,20 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "2011": [],
+  "2011": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "76341": [
     {
       "id": 119,
@@ -932,22 +1332,49 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "245891": [],
+  "245891": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "562": [
     {
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "280": [],
+  "280": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "94329": [
     {
       "id": 119,
       "name": "Amazon Prime Video",
       "logo_path": "/gMZdpavHmxFNnLpMHwVxfqeux2g.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "339403": [
@@ -955,6 +1382,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "361743": [
@@ -972,6 +1404,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "146": [
@@ -979,6 +1416,11 @@
       "id": 2745,
       "name": "Sony Pictures Core",
       "logo_path": "/uNyIRlzYb0Hf7Ix6Q3MKms0ERgA.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "545611": [
@@ -1006,6 +1448,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "353081": [
@@ -1023,6 +1470,11 @@
       "id": 582,
       "name": "Paramount+",
       "logo_path": "/bxX0YVOCY7bI85BKRlJAAQ2EjUR.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "218": [
@@ -1030,6 +1482,11 @@
       "id": 381,
       "name": "Canal+",
       "logo_path": "/gliWKhLJVdm7QwL1braBCRko5dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "194": [],
@@ -1054,9 +1511,20 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "492": [],
+  "492": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "300": [
     {
       "id": 389,
@@ -1072,6 +1540,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "10315": [
@@ -1089,6 +1562,11 @@
       "id": 2535,
       "name": "France TV",
       "logo_path": "/dZtmGfUhFagm7YNk1Idol1T2t7e.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "83666": [
@@ -1096,6 +1574,11 @@
       "id": 11,
       "name": "MUBI",
       "logo_path": "/k7iSlvgWzZuO4zU5PcBjhABMuia.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "9428": [
@@ -1103,6 +1586,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "120467": [
@@ -1110,6 +1598,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "68": [
@@ -1117,6 +1610,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "28": [
@@ -1136,6 +1634,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "530915": [
@@ -1143,27 +1646,60 @@
       "id": 2535,
       "name": "France TV",
       "logo_path": "/dZtmGfUhFagm7YNk1Idol1T2t7e.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "423": [],
+  "423": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "857": [
     {
       "id": 1967,
       "name": "Molotov TV",
       "logo_path": "/g8P4BJ2Wrya0VkbGUxBoUqpXtSs.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "25237": [],
-  "947": [],
+  "947": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "600": [
     {
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "11216": [],
-  "546554": [],
+  "546554": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "115": [
     {
       "id": 381,
@@ -1174,6 +1710,11 @@
       "id": 1899,
       "name": "HBO Max",
       "logo_path": "/skypuy7SXuugIQeYg0IglmzoKaS.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "275": [
@@ -1196,6 +1737,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "375262": [
@@ -1203,11 +1749,34 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "314365": [],
-  "503919": [],
-  "290250": [],
+  "314365": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "503919": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "290250": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "581734": [
     {
       "id": 337,
@@ -1228,6 +1797,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "491584": [
@@ -1240,6 +1814,11 @@
       "id": 513,
       "name": "Shadowz",
       "logo_path": "/4Hmt479nSu8j4JIFDu6WPqsc6AT.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "758866": [
@@ -1247,6 +1826,11 @@
       "id": 11,
       "name": "MUBI",
       "logo_path": "/k7iSlvgWzZuO4zU5PcBjhABMuia.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "674324": [
@@ -1254,6 +1838,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "641": [
@@ -1276,6 +1865,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "4960": [],
@@ -1299,6 +1893,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "103663": [
@@ -1308,7 +1907,13 @@
       "logo_path": "/k7iSlvgWzZuO4zU5PcBjhABMuia.png"
     }
   ],
-  "346": [],
+  "346": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "548": [
     {
       "id": 2077,
@@ -1319,15 +1924,37 @@
       "id": 538,
       "name": "Plex",
       "logo_path": "/blAEhvx3XX8sV0fFVFk88FFjubs.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
-  "269": [],
-  "422": [],
+  "269": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
+  "422": [
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
+    }
+  ],
   "147": [
     {
       "id": 1738,
       "name": "Benshi",
       "logo_path": "/9CGo4lo9D6GgDOY2nmWDA8bWki1.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "335": [
@@ -1340,6 +1967,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "7345": [
@@ -1357,6 +1989,11 @@
       "id": 2303,
       "name": "Paramount Plus Premium",
       "logo_path": "/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "98": [
@@ -1364,6 +2001,11 @@
       "id": 119,
       "name": "Amazon Prime Video",
       "logo_path": "/gMZdpavHmxFNnLpMHwVxfqeux2g.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "862": [
@@ -1371,6 +2013,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "14160": [
@@ -1378,6 +2025,11 @@
       "id": 337,
       "name": "Disney Plus",
       "logo_path": "/5eZ872CghnHFLB1j8grszbrx0dx.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ],
   "600583": [
@@ -1402,6 +2054,11 @@
       "id": 193,
       "name": "SFR Play",
       "logo_path": "/9yt7CjnySiiOtRFknNWCz3gSyXz.png"
+    },
+    {
+      "id": 2,
+      "name": "Apple TV",
+      "logo_path": "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png"
     }
   ]
 }

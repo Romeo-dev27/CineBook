@@ -45,6 +45,13 @@ class _HomeScreenState extends State<HomeScreen> {
   RecommendationWeights _weights = RecommendationWeights.equilibre;
   double _discoverySlider = 0.3;
   int _topN = 5;
+  String _selectedProvider = 'Tous';
+  static const List<String> _providerOptions = [
+    'Tous',
+    'Netflix',
+    'Amazon Prime Video',
+    'Apple TV',
+  ];
 
   bool _isLoading = false;
   RecommendResponse? _response;
@@ -160,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
         topN: _topN,
         weights: _weights,
         discoverySlider: _discoverySlider,
+        provider: _selectedProvider == 'Tous' ? null : _selectedProvider,
       );
       if (mounted) {
         setState(() {
@@ -405,6 +413,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _buildStreamingFilterBar(),
+        const SizedBox(height: 18),
+
         const Text(
           '1. Choisis tes films de référence (Multi-sélection & Mix)',
           style: TextStyle(
@@ -743,6 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_response == null || _response!.recommendations.isEmpty) {
+      final isFiltered = _selectedProvider != 'Tous';
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 60),
         alignment: Alignment.center,
@@ -750,19 +762,40 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.movie_filter_outlined, color: AppTheme.textMuted.withValues(alpha: 0.5), size: 64),
             const SizedBox(height: 16),
-            const Text(
-              'Aucune recommandation générée pour l\'instant',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
+            Text(
+              isFiltered
+                  ? 'Aucun film trouvé sur $_selectedProvider pour cette sélection'
+                  : 'Aucune recommandation générée pour l\'instant',
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Choisis un film de référence à gauche puis clique sur Générer.',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+            Text(
+              isFiltered
+                  ? 'Essayez de repasser sur "Tous" ou d\'ajuster vos curseurs pour élargir la recherche.'
+                  : 'Choisis un film de référence à gauche puis clique sur Générer.',
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              textAlign: TextAlign.center,
             ),
+            if (isFiltered) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.refresh, size: 16, color: AppTheme.gold),
+                label: const Text('Afficher toutes les plateformes', style: TextStyle(color: AppTheme.gold)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.gold),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  setState(() => _selectedProvider = 'Tous');
+                  _fetchRecommendations();
+                },
+              ),
+            ],
           ],
         ),
       );
@@ -807,6 +840,40 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle,
           style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
+        if (_selectedProvider != 'Tous') ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: _getProviderBgColor(_selectedProvider),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _getProviderBorderColor(_selectedProvider)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildChoiceChipAvatar(_selectedProvider, true) ?? const SizedBox.shrink(),
+                const SizedBox(width: 6),
+                Text(
+                  'Filtre actif : $_selectedProvider',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    setState(() => _selectedProvider = 'Tous');
+                    _fetchRecommendations();
+                  },
+                  child: const Icon(Icons.close, size: 14, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
 
         ...List.generate(recs.length, (index) {
@@ -823,5 +890,167 @@ class _HomeScreenState extends State<HomeScreen> {
         }),
       ],
     );
+  }
+
+  Widget _buildStreamingFilterBar() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceElevated.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.live_tv_rounded, size: 14, color: AppTheme.gold),
+              const SizedBox(width: 6),
+              const Text(
+                'PLATEFORME DE STREAMING',
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              if (_selectedProvider != 'Tous') ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: _getProviderBorderColor(_selectedProvider).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: _getProviderBorderColor(_selectedProvider),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    _selectedProvider,
+                    style: TextStyle(
+                      color: _getProviderBorderColor(_selectedProvider),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _providerOptions.map((provider) {
+                final isSelected = _selectedProvider == provider;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    avatar: _buildChoiceChipAvatar(provider, isSelected),
+                    label: Text(provider),
+                    selected: isSelected,
+                    selectedColor: _getProviderBgColor(provider),
+                    backgroundColor: AppTheme.surface,
+                    showCheckmark: false,
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSelected
+                            ? _getProviderBorderColor(provider)
+                            : AppTheme.border,
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                    ),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    onSelected: (selected) {
+                      if (selected && _selectedProvider != provider) {
+                        setState(() {
+                          _selectedProvider = provider;
+                        });
+                        if (_selectedSeeds.isNotEmpty) {
+                          _fetchRecommendations();
+                        }
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget? _buildChoiceChipAvatar(String provider, bool isSelected) {
+    if (provider == 'Tous') {
+      return Icon(
+        Icons.auto_awesome,
+        size: 13,
+        color: isSelected ? AppTheme.gold : AppTheme.textMuted,
+      );
+    }
+    if (provider == 'Netflix') {
+      return Container(
+        width: 14,
+        height: 14,
+        decoration: const BoxDecoration(
+          color: Color(0xFFE50914),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Text(
+          'N',
+          style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900),
+        ),
+      );
+    }
+    if (provider == 'Amazon Prime Video') {
+      return Container(
+        width: 14,
+        height: 14,
+        decoration: const BoxDecoration(
+          color: Color(0xFF00A8E1),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.play_arrow, color: Colors.white, size: 10),
+      );
+    }
+    if (provider == 'Apple TV') {
+      return Container(
+        width: 14,
+        height: 14,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.3),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.tv, color: Colors.white, size: 10),
+      );
+    }
+    return null;
+  }
+
+  Color _getProviderBgColor(String provider) {
+    if (provider == 'Netflix') return const Color(0xFF380606);
+    if (provider == 'Amazon Prime Video') return const Color(0xFF042138);
+    if (provider == 'Apple TV') return const Color(0xFF2C2C2E);
+    return AppTheme.gold.withValues(alpha: 0.22);
+  }
+
+  Color _getProviderBorderColor(String provider) {
+    if (provider == 'Netflix') return const Color(0xFFE50914);
+    if (provider == 'Amazon Prime Video') return const Color(0xFF00A8E1);
+    if (provider == 'Apple TV') return const Color(0xFFA2AAAD);
+    return AppTheme.gold;
   }
 }

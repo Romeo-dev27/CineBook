@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Optional
 import numpy as np
 from sqlalchemy.orm import Session
 from models import Movie, MovieVector
+from watch_providers_service import watch_providers_service
 
 
 class DatabaseRecommenderService:
@@ -47,7 +48,8 @@ class DatabaseRecommenderService:
         reference_id: Optional[int] = None,
         top_n: int = 5,
         weights: Optional[Dict[str, float]] = None,
-        discovery_slider: float = 0.3
+        discovery_slider: float = 0.3,
+        provider: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         # 1. Normaliser et résoudre les IDs cibles
         target_ids: List[int] = []
@@ -114,6 +116,12 @@ class DatabaseRecommenderService:
             if not c_vec:
                 continue
 
+            # Filtrage optionnel par plateforme de streaming
+            cand_providers = watch_providers_service.get_providers_for_movie(cand.id)
+            if provider and provider.strip() and provider.strip().lower() not in ("tous", "all", "tout"):
+                if not watch_providers_service.movie_matches_provider(cand.id, provider):
+                    continue
+
             sim_genre = self._cosine_sim(mean_genre, c_vec.genre_vec)
             sim_atmo  = self._cosine_sim(mean_atmo, c_vec.atmosphere_vec)
             sim_vis   = self._cosine_sim(mean_vis, c_vec.visual_vec)
@@ -169,7 +177,8 @@ class DatabaseRecommenderService:
                 "base_similarity": round(base_similarity, 4),
                 "discovery_factor": round(discovery_factor, 2),
                 "sub_scores": {k: round(v, 3) for k, v in sub_scores.items()},
-                "explanation": explanation
+                "explanation": explanation,
+                "streaming_providers": cand_providers,
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)

@@ -39,6 +39,7 @@ def get_movies(
     query: Optional[str] = Query(None, description="Recherche par titre (insensible aux accents et à la casse)"),
     genre: Optional[str] = Query(None, description="Filtre par nom de genre exact (ex: Drama, Sci-Fi)"),
     tag: Optional[str] = Query(None, description="Filtre par tag d'atmosphère (ex: melancholic, tense)"),
+    provider: Optional[str] = Query(None, description="Filtre par plateforme de streaming (ex: Netflix, Amazon Prime Video, Apple TV)"),
     skip: int = Query(0, ge=0, description="Décalage pour pagination"),
     limit: int = Query(50, ge=1, le=150, description="Nombre max de résultats"),
     db: Session = Depends(get_db),
@@ -48,6 +49,7 @@ def get_movies(
     - Titre partiel
     - Genre spécifique
     - Tag d'atmosphère
+    - Plateforme de streaming
     """
     q = db.query(Movie)
 
@@ -63,6 +65,10 @@ def get_movies(
     if query:
         norm_query = _strip_accents(query)
         movies = [m for m in movies if norm_query in _strip_accents(m.title)]
+
+    # Filtrage par plateforme de streaming
+    if provider and provider.strip() and provider.strip().lower() not in ("tous", "all", "tout"):
+        movies = [m for m in movies if watch_providers_service.movie_matches_provider(m.id, provider)]
 
     # Pagination
     paginated = movies[skip : skip + limit]

@@ -4,16 +4,15 @@ import '../theme/app_theme.dart';
 
 class StreamingBadges extends StatelessWidget {
   final List<WatchProvider> providers;
-  final double logoSize;
   final bool showHeader;
   final int maxBadges;
 
   const StreamingBadges({
     super.key,
     required this.providers,
-    this.logoSize = 24.0,
     this.showHeader = true,
-    this.maxBadges = 5,
+    this.maxBadges = 4,
+    double logoSize = 16.0,
   });
 
   @override
@@ -33,10 +32,10 @@ class StreamingBadges extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.play_circle_fill_rounded, size: 13, color: AppTheme.gold.withValues(alpha: 0.9)),
+              Icon(Icons.tv_rounded, size: 12, color: AppTheme.gold.withValues(alpha: 0.9)),
               const SizedBox(width: 5),
               const Text(
-                'STREAMING',
+                'DISPONIBLE SUR',
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 10,
@@ -49,27 +48,25 @@ class StreamingBadges extends StatelessWidget {
           const SizedBox(height: 6),
         ],
         Wrap(
-          spacing: 6,
-          runSpacing: 4,
+          spacing: 8,
+          runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             ...displayProviders.map((p) => _buildProviderBadge(context, p)),
             if (remainingCount > 0)
               Container(
-                height: logoSize,
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppTheme.border),
                 ),
-                alignment: Alignment.center,
                 child: Text(
-                  '+$remainingCount',
+                  '+$remainingCount autre${remainingCount > 1 ? 's' : ''}',
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -80,83 +77,176 @@ class StreamingBadges extends StatelessWidget {
   }
 
   Widget _buildProviderBadge(BuildContext context, WatchProvider provider) {
-    return Tooltip(
-      message: 'Disponible sur ${provider.name}',
+    final style = _getPlatformStyle(provider.name);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated,
+        color: style.backgroundColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.5)),
+        border: Border.all(color: style.borderColor, width: 1.1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: style.borderColor.withValues(alpha: 0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      textStyle: const TextStyle(
-        color: AppTheme.textPrimary,
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-      ),
-      child: Container(
-        width: logoSize,
-        height: logoSize,
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceElevated,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: _getBrandBorderColor(provider.name),
-            width: 1.0,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Logo ou icône
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: provider.logoUrl != null
+                ? Image.network(
+                    provider.logoUrl!,
+                    width: 16,
+                    height: 16,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildFallbackIcon(style),
+                  )
+                : _buildFallbackIcon(style),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+          const SizedBox(width: 6),
+          // Nom clair et lisible en 11.5px
+          Text(
+            style.displayName,
+            style: TextStyle(
+              color: style.textColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(5),
-          child: provider.logoUrl != null
-              ? Image.network(
-                  provider.logoUrl!,
-                  width: logoSize,
-                  height: logoSize,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => _buildFallbackPill(provider),
-                )
-              : _buildFallbackPill(provider),
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Color _getBrandBorderColor(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('netflix')) return const Color(0xFFE50914).withValues(alpha: 0.6);
-    if (lower.contains('prime') || lower.contains('amazon')) return const Color(0xFF00A8E1).withValues(alpha: 0.6);
-    if (lower.contains('disney')) return const Color(0xFF113CCF).withValues(alpha: 0.6);
-    if (lower.contains('max') || lower.contains('hbo')) return const Color(0xFF5822B4).withValues(alpha: 0.6);
-    if (lower.contains('apple')) return Colors.white.withValues(alpha: 0.4);
-    if (lower.contains('canal')) return AppTheme.gold.withValues(alpha: 0.6);
-    return AppTheme.border;
-  }
-
-  Widget _buildFallbackPill(WatchProvider provider) {
-    final initial = provider.name.isNotEmpty ? provider.name.substring(0, 1).toUpperCase() : '▶';
+  Widget _buildFallbackIcon(_PlatformStyle style) {
     return Container(
-      color: AppTheme.surfaceElevated,
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: style.borderColor.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(4),
+      ),
       alignment: Alignment.center,
       child: Text(
-        initial,
+        style.displayName.isNotEmpty ? style.displayName.substring(0, 1) : '▶',
         style: TextStyle(
-          color: _getBrandBorderColor(provider.name),
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
+          color: style.borderColor,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
+
+  _PlatformStyle _getPlatformStyle(String rawName) {
+    final lower = rawName.toLowerCase();
+
+    // Netflix : rouge foncé
+    if (lower.contains('netflix')) {
+      return const _PlatformStyle(
+        displayName: 'Netflix',
+        backgroundColor: Color(0xFF260505),
+        borderColor: Color(0xFFE50914),
+        textColor: Color(0xFFFFEEEE),
+      );
+    }
+
+    // Amazon Prime Video : bleu nuit
+    if (lower.contains('prime') || lower.contains('amazon')) {
+      return const _PlatformStyle(
+        displayName: 'Prime Video',
+        backgroundColor: Color(0xFF03192B),
+        borderColor: Color(0xFF00A8E1),
+        textColor: Color(0xFFDDF5FF),
+      );
+    }
+
+    // Apple TV : gris sombre / argent
+    if (lower.contains('apple')) {
+      return const _PlatformStyle(
+        displayName: 'Apple TV',
+        backgroundColor: Color(0xFF1C1C1E),
+        borderColor: Color(0xFF8E8E93),
+        textColor: Color(0xFFF2F2F7),
+      );
+    }
+
+    // Disney+ : bleu Disney
+    if (lower.contains('disney')) {
+      return const _PlatformStyle(
+        displayName: 'Disney+',
+        backgroundColor: Color(0xFF061435),
+        borderColor: Color(0xFF113CCF),
+        textColor: Color(0xFFE5EDFF),
+      );
+    }
+
+    // HBO Max : violet sombre
+    if (lower.contains('max') || lower.contains('hbo')) {
+      return const _PlatformStyle(
+        displayName: 'Max',
+        backgroundColor: Color(0xFF160829),
+        borderColor: Color(0xFF9E47FF),
+        textColor: Color(0xFFF4EBFF),
+      );
+    }
+
+    // Canal+ : or sombre
+    if (lower.contains('canal')) {
+      return const _PlatformStyle(
+        displayName: 'Canal+',
+        backgroundColor: Color(0xFF221A04),
+        borderColor: Color(0xFFFFCC00),
+        textColor: Color(0xFFFFF8D6),
+      );
+    }
+
+    // Paramount+ : bleu électrique sombre
+    if (lower.contains('paramount')) {
+      return const _PlatformStyle(
+        displayName: 'Paramount+',
+        backgroundColor: Color(0xFF041635),
+        borderColor: Color(0xFF0064FF),
+        textColor: Color(0xFFE5F0FF),
+      );
+    }
+
+    // Plateformes diverses : gris sombre
+    return _PlatformStyle(
+      displayName: _cleanGenericName(rawName),
+      backgroundColor: const Color(0xFF171B26),
+      borderColor: const Color(0xFF384259),
+      textColor: const Color(0xFFCBD5E1),
+    );
+  }
+
+  String _cleanGenericName(String name) {
+    var clean = name;
+    for (final s in [' Standard with Ads', ' with Ads', ' Channel']) {
+      clean = clean.replaceAll(s, '');
+    }
+    return clean;
+  }
+}
+
+class _PlatformStyle {
+  final String displayName;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color textColor;
+
+  const _PlatformStyle({
+    required this.displayName,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.textColor,
+  });
 }
