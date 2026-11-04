@@ -1,0 +1,13 @@
+* text=auto
+
+# Scripts exécutés sur les images Linux de Vercel et Render : un CRLF les fait
+# échouer avec "bash\r: No such file or directory".
+*.sh  text eol=lf
+*.py  text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+*.png binary
+*.ico binary
+*.woff binary

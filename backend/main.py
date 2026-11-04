@@ -8,6 +8,7 @@ Configure :
 - Les endpoints de statut et santé (/ et /health)
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -45,10 +46,15 @@ app = FastAPI(
 )
 
 # ── Middleware CORS (Essentiel pour Flutter Web / Mobile) ──────────────────────
+# L'auth se fait par en-tête Bearer, jamais par cookie : allow_credentials doit
+# rester faux, sinon Starlette échoit n'importe quelle origine sur des requêtes
+# authentifiées.
+_cors_origins = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Autorise tous les domaines (idéal pour le dev Flutter Web/Mobile)
-    allow_credentials=True,
+    allow_origins=_cors_origins or ["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

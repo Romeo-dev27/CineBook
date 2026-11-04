@@ -4,8 +4,8 @@ services:
     runtime: python
     region: frankfurt
     plan: free
-    buildCommand: "./build.sh"
-    startCommand: "./start.sh"
+    buildCommand: "bash ./build.sh"
+    startCommand: "bash ./start.sh"
     healthCheckPath: /health
     autoDeploy: true
     envVars:

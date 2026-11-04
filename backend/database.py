@@ -43,11 +43,15 @@ engine = create_engine(
 
 # ⚠️ Bonnes pratiques SQLite : activer obligatoirement la vérification des clés étrangères
 # Par défaut, SQLite désactive les clés étrangères pour des raisons de compatibilité historique.
+# WAL est indispensable ici : uvicorn tourne avec 2 processus workers qui partagent le même
+# fichier, et le mode "delete" par défaut bloque toute écriture concurrente.
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     if DATABASE_URL.startswith("sqlite"):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=5000")
         cursor.close()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -8,6 +8,7 @@ Fournit :
 """
 
 import os
+import sys
 import hmac
 import hashlib
 import secrets
@@ -23,7 +24,12 @@ from database import get_db
 from models import User
 
 # Configuration des clés
-JWT_SECRET = os.getenv("JWT_SECRET", "cinebook_super_secret_jwt_key_2026_dev")
+# Sans JWT_SECRET explicite, on génère une clé éphémère plutôt que d'utiliser un
+# secret publié dans le dépôt : les jetons deviennent alors invalides à chaque
+# redémarrement, ce qui force la configuration réelle en production.
+JWT_SECRET = os.getenv("JWT_SECRET") or secrets.token_hex(32)
+if not os.getenv("JWT_SECRET"):
+    print("[WARN] JWT_SECRET absent - tokens invalides a chaque redemarrage.", file=sys.stderr)
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 

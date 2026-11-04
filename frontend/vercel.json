@@ -1,25 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": ":",
+  "buildCommand": "bash ./build.sh",
+  "outputDirectory": "build/web",
   "cleanUrls": true,
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        },
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "credentialless"
-        }
-      ]
     }
   ]
 }

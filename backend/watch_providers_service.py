@@ -15,7 +15,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 LOCAL_DATA_DIR = Path(__file__).resolve().parent / "data"
 ROOT_DATA_DIR = ROOT_DIR / "data_pipeline" / "data"
 
-TMDB_API_KEY = os.getenv("TMDB_API_KEY", "b8c96393f5521f0afaaa396e1a6a95fa")
+TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
 DEFAULT_COUNTRY = "FR"
 
 
@@ -67,6 +67,31 @@ class WatchProvidersService:
             result[mid] = self.get_providers_for_movie(mid, country)
         return result
 
+    def movie_matches_provider(self, movie_id: int, provider_query: Optional[str], country: str = DEFAULT_COUNTRY) -> bool:
+        """
+        Vérifie si un film est disponible sur la plateforme demandée.
+        Si provider_query est vide, None ou 'Tous'/'All', retourne True.
+        """
+        if not provider_query:
+            return True
+        query = provider_query.strip().lower()
+        if query in ("", "tous", "all", "tout"):
+            return True
+
+        providers = self.get_providers_for_movie(movie_id, country)
+        for p in providers:
+            p_name = p.get("name", "").lower()
+            # Correspondance souple
+            if query in p_name or p_name in query:
+                return True
+            if "prime" in query and ("prime" in p_name or "amazon" in p_name):
+                return True
+            if "apple" in query and "apple" in p_name:
+                return True
+            if "disney" in query and "disney" in p_name:
+                return True
+        return False
+
     def _fetch_from_tmdb(self, movie_id: int, country: str) -> List[Dict[str, Any]]:
         """Effectue une requête HTTP sécurisée vers l'endpoint TMDb Watch Providers."""
         if not TMDB_API_KEY:
@@ -89,10 +114,10 @@ class WatchProvidersService:
             country_data = results.get(country, {})
 
             # 1. Priorité au streaming sur abonnement (flatrate)
-            raw_providers = country_data.get("flatrate", [])
+            raw_providers = list(country_data.get("flatrate", []))
             # 2. Si aucun abonnement, vérifier gratuit (free) ou avec pub (ads)
             if not raw_providers:
-                raw_providers = country_data.get("free", []) or country_data.get("ads", [])
+                raw_providers = list(country_data.get("free", []) or country_data.get("ads", []))
 
             clean_providers: List[Dict[str, Any]] = []
             seen_names = set()
@@ -114,6 +139,19 @@ class WatchProvidersService:
                     "name": clean_name,
                     "logo_path": p.get("logo_path")
                 })
+
+            # 3. Prise en compte d'Apple TV (souvent répertorié en buy/rent en France)
+            if not any("apple" in name.lower() for name in seen_names):
+                buy_rent = country_data.get("buy", []) + country_data.get("rent", [])
+                for p in buy_rent:
+                    p_name = p.get("provider_name", "")
+                    if "Apple TV" in p_name:
+                        clean_providers.append({
+                            "id": p.get("provider_id", 2),
+                            "name": "Apple TV",
+                            "logo_path": p.get("logo_path", "/qdEGArH3lKfFnAtYXMkSYk5wxuG.png")
+                        })
+                        break
 
             return clean_providers
         except Exception:
