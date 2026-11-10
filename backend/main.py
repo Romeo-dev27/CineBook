@@ -22,8 +22,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from database import engine, get_db, Base
+from database import engine, get_db, Base, SessionLocal
 from models import Movie
+from seed_db import seed_if_empty
 from routes.movies import router as movies_router
 from routes.recommend import router as recommend_router
 from routes.auth import router as auth_router
@@ -31,6 +32,21 @@ from routes.watchlist import router as watchlist_router
 
 # Assurer la création des tables si la DB n'existe pas encore (y compris users et watchlist_items)
 Base.metadata.create_all(bind=engine)
+
+# Filet de sécurité Render free : le filesystem est éphémère, la base peut revenir
+# vide après une mise en veille. start.sh le fait déjà une fois avant les workers ;
+# ici on couvre le cas d'une Start Command qui lancerait uvicorn directement.
+try:
+    seed_if_empty()
+except Exception:
+    # Course possible entre les 2 workers : celui qui perd voit des doublons,
+    # mais l'autre a commité une base correcte.
+    _db = SessionLocal()
+    try:
+        if _db.query(Movie).count() == 0:
+            raise
+    finally:
+        _db.close()
 
 app = FastAPI(
     title="CineBook API",

@@ -184,6 +184,27 @@ def seed_database():
         db.close()
 
 
+def seed_if_empty():
+    """Peuple la base uniquement si elle ne contient aucun film.
+
+    Appelé une fois au démarrage du service (start.sh), avant les workers uvicorn :
+    sur Render free, le filesystem est éphémère et la base peut revenir vide après
+    une mise en veille ou un redéploiement dont le build n'a pas lancé le seed.
+    """
+    init_db()
+    db = SessionLocal()
+    try:
+        count = db.query(Movie).count()
+    finally:
+        db.close()
+
+    if count == 0:
+        print("🌱 Base vide au démarrage : peuplement automatique...")
+        seed_database()
+    else:
+        print(f"🎬 Base déjà peuplée : {count} films, seed ignoré.")
+
+
 if __name__ == "__main__":
     init_db()
     seed_database()
