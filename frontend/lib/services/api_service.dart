@@ -107,6 +107,7 @@ class ApiService {
     int topN = 5,
     required RecommendationWeights weights,
     double discoverySlider = 0.3,
+    double? alpha,
     String? provider,
   }) async {
     final uri = Uri.parse('$baseUrl/recommend');
@@ -130,6 +131,9 @@ class ApiService {
       'weights': weights.toJson(),
       'discovery_slider': discoverySlider,
     };
+    if (alpha != null) {
+      payloadMap['alpha'] = alpha;
+    }
     if (provider != null && provider.isNotEmpty && provider != 'Tous') {
       payloadMap['provider'] = provider;
     }

@@ -35,6 +35,8 @@ data_pipeline/data/_checkpoint*.json
 data_pipeline/data/backdrops/
 *.sqlite
 *.db
+*.db-shm
+*.db-wal
 
 # ─── OS & IDE ──────────────────────────────────────────────────────────────────
 .DS_Store
