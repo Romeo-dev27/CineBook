@@ -63,7 +63,7 @@ def recommend_movies(
         reference_ids=target_ids,
         top_n=req.top_n,
         weights=weights_dict,
-        discovery_slider=req.effective_discovery,
+        discovery_slider=req.discovery_slider,
         provider=req.provider
     )
 

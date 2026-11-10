@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'models/movie.dart';
 import 'models/recommendation.dart';
@@ -9,7 +7,6 @@ import 'theme/app_theme.dart';
 import 'widgets/movie_search_bar.dart';
 import 'widgets/reference_card.dart';
 import 'widgets/weight_sliders.dart';
-import 'widgets/vibe_remix_panel.dart';
 import 'widgets/recommendation_card.dart';
 import 'widgets/auth_dialog.dart';
 import 'widgets/watchlist_drawer.dart';
@@ -60,10 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
   RecommendResponse? _response;
   String? _errorMessage;
 
-  // Vibe Remix : debounce + garde anti-réponse obsolète
-  Timer? _remixDebounce;
-  int _fetchGeneration = 0;
-
   List<MovieBrief> _quickPicks = [];
   bool _isLoadingQuickPicks = true;
 
@@ -76,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _remixDebounce?.cancel();
     _authService.removeListener(_onAuthChanged);
     super.dispose();
   }
@@ -164,8 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final generation = ++_fetchGeneration;
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -177,42 +167,22 @@ class _HomeScreenState extends State<HomeScreen> {
         topN: _topN,
         weights: _weights,
         discoverySlider: _discoverySlider,
-        alpha: _discoverySlider,
         provider: _selectedProvider == 'Tous' ? null : _selectedProvider,
       );
-      if (mounted && generation == _fetchGeneration) {
+      if (mounted) {
         setState(() {
           _response = res;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted && generation == _fetchGeneration) {
+      if (mounted) {
         setState(() {
           _errorMessage = e.toString().replaceAll('Exception: ', '');
           _isLoading = false;
         });
       }
     }
-  }
-
-  /// Vibe Remix : programme un recalcul après 400 ms d'inactivité sur les curseurs.
-  void _scheduleRemixFetch() {
-    _remixDebounce?.cancel();
-    if (_selectedSeeds.isEmpty) return;
-    _remixDebounce = Timer(const Duration(milliseconds: 400), () {
-      if (_selectedSeeds.isNotEmpty) _fetchRecommendations();
-    });
-  }
-
-  void _onRemixWeightsChanged(RecommendationWeights w) {
-    setState(() => _weights = w);
-    _scheduleRemixFetch();
-  }
-
-  void _onRemixAlphaChanged(double a) {
-    setState(() => _discoverySlider = a);
-    _scheduleRemixFetch();
   }
 
   Future<void> _handleToggleWatchlist(RecommendationItem movie) async {
@@ -416,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: _buildResultsArea(),
+            child: _buildResultsSection(),
           ),
         ),
       ],
@@ -433,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
           const Divider(color: AppTheme.border),
           const SizedBox(height: 16),
-          _buildResultsArea(),
+          _buildResultsSection(),
         ],
       ),
     );
@@ -729,26 +699,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  /// Zone de résultats : panneau Vibe Remix (si des films sont sélectionnés)
-  /// suivi de la section de résultats existante, inchangée.
-  Widget _buildResultsArea() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_selectedSeeds.isNotEmpty) ...[
-          VibeRemixPanel(
-            weights: _weights,
-            alpha: _discoverySlider,
-            onWeightsChanged: _onRemixWeightsChanged,
-            onAlphaChanged: _onRemixAlphaChanged,
-          ),
-          const SizedBox(height: 20),
-        ],
-        _buildResultsSection(),
-      ],
     );
   }
 

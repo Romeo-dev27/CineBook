@@ -211,49 +211,6 @@ def test_recommend_validation_error():
     assert response.status_code == 422  # Unprocessable Entity
 
 
-def test_recommend_alpha_equivalent_to_discovery_slider():
-    """Vibe Remix : alpha seul doit produire le même résultat que discovery_slider."""
-    base_payload = {"movie_id": 335984, "top_n": 5}
-    res_legacy = client.post("/api/recommend", json={**base_payload, "discovery_slider": 0.6})
-    res_alpha = client.post("/api/recommend", json={**base_payload, "alpha": 0.6})
-    assert res_legacy.status_code == 200
-    assert res_alpha.status_code == 200
-    assert res_legacy.json()["recommendations"] == res_alpha.json()["recommendations"]
-
-
-def test_recommend_alpha_does_not_change_defaults():
-    """Vibe Remix : envoyer alpha égal au défaut ne change rien au comportement actuel."""
-    base_payload = {"movie_id": 335984, "top_n": 5, "discovery_slider": 0.3}
-    res_without = client.post("/api/recommend", json=base_payload)
-    res_with = client.post("/api/recommend", json={**base_payload, "alpha": 0.3})
-    assert res_without.status_code == 200
-    assert res_with.status_code == 200
-    assert res_without.json()["recommendations"] == res_with.json()["recommendations"]
-
-
-def test_recommend_alpha_overrides_discovery_slider():
-    """Vibe Remix : alpha est prioritaire sur discovery_slider quand les deux sont fournis."""
-    base_payload = {"movie_id": 335984, "top_n": 5}
-    res_expected = client.post("/api/recommend", json={**base_payload, "discovery_slider": 0.9})
-    res_mixed = client.post(
-        "/api/recommend",
-        json={**base_payload, "discovery_slider": 0.0, "alpha": 0.9},
-    )
-    assert res_expected.status_code == 200
-    assert res_mixed.status_code == 200
-    assert res_expected.json()["recommendations"] == res_mixed.json()["recommendations"]
-
-
-def test_recommend_alpha_out_of_range():
-    """Vibe Remix : alpha hors de [0.0, 1.0] est rejeté (422)."""
-    for bad_alpha in (-0.1, 1.5):
-        response = client.post(
-            "/api/recommend",
-            json={"movie_id": 335984, "alpha": bad_alpha},
-        )
-        assert response.status_code == 422
-
-
 def test_recommend_multi_seeds_blended():
     """Vérifie la recommandation multi-films (mixage mathématique de plusieurs seeds)."""
     # 335984 = Blade Runner 2049, 603 = Matrix

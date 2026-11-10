@@ -98,12 +98,7 @@ class RecommendRequest(BaseModel):
     top_n: int = Field(default=5, ge=1, le=20, description="Nombre de recommandations souhaitées")
     weights: Optional[RecommendationWeights] = Field(default_factory=RecommendationWeights)
     discovery_slider: float = Field(default=0.3, ge=0.0, le=1.0, description="0.0: blockbusters tolérés, 1.0: boost maximal aux pépites méconnues")
-    alpha: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Alias Vibe Remix du curseur de découverte (0.0 = mainstream, 1.0 = pépites cachées). Prioritaire sur discovery_slider si fourni.")
     provider: Optional[str] = Field(default=None, description="Filtre optionnel par plateforme de streaming (ex: Netflix, Amazon Prime Video, Apple TV)")
-
-    @property
-    def effective_discovery(self) -> float:
-        return self.alpha if self.alpha is not None else self.discovery_slider
 
     def get_movie_ids(self) -> List[int]:
         if self.movie_ids and len(self.movie_ids) > 0:
