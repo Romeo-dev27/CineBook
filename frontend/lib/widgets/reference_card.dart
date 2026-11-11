@@ -83,6 +83,7 @@ class ReferenceCard extends StatelessWidget {
                           movie.posterUrl!,
                           width: 80,
                           height: 120,
+                          cacheWidth: (80 * MediaQuery.devicePixelRatioOf(context)).round(),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                         )

@@ -73,6 +73,7 @@ class RecommendationCard extends StatelessWidget {
                               item.posterUrl!,
                               width: 85,
                               height: 128,
+                              cacheWidth: (85 * MediaQuery.devicePixelRatioOf(context)).round(),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                             )

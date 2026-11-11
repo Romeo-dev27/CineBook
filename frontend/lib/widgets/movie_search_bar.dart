@@ -219,6 +219,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
                                       movie.posterUrl!,
                                       width: 36,
                                       height: 52,
+                                      cacheWidth: (36 * MediaQuery.devicePixelRatioOf(context)).round(),
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) =>
                                           _buildPlaceholder(),
@@ -387,6 +388,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
                     movie.posterUrl!,
                     width: 26,
                     height: 26,
+                    cacheWidth: (26 * MediaQuery.devicePixelRatioOf(context)).round(),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       width: 26,

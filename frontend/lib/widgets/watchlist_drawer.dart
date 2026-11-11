@@ -170,6 +170,7 @@ class WatchlistDrawer extends StatelessWidget {
                       movie.posterUrl!,
                       width: 50,
                       height: 75,
+                      cacheWidth: (50 * MediaQuery.devicePixelRatioOf(context)).round(),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                     )

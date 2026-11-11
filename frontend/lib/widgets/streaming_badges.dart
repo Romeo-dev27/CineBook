@@ -104,6 +104,7 @@ class StreamingBadges extends StatelessWidget {
                     provider.logoUrl!,
                     width: 16,
                     height: 16,
+                    cacheWidth: (16 * MediaQuery.devicePixelRatioOf(context)).round(),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
                         _buildFallbackIcon(style),
