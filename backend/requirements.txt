@@ -1,18 +1,23 @@
 # Dépendances Backend CineBook (FastAPI + SQLAlchemy)
-# Installe avec : pip install -r backend/requirements.txt
+# Python 3.11+ (3.12 recommandé). Installe avec :
+#   pip install -r backend/requirements.txt
+# ou via Conda : conda env create -f backend/environment.yaml
 
-sqlalchemy>=2.0.35        # ORM moderne 2.0 pour la base SQLite
-pydantic>=2.12.5          # Schémas de validation des données
-pytest>=8.0.0             # Tests unitaires
+sqlalchemy>=2.1.5         # ORM moderne 2.0 pour la base SQLite
+pydantic>=2.14.1          # Schémas de validation des données
+pytest>=9.1.1             # Tests unitaires
 
 # ── Jalon 3 (API FastAPI) ──────────────────────────────────────────────────────
-fastapi>=0.115.0          # Framework API REST asynchrone
-uvicorn[standard]>=0.30.0 # Serveur ASGI pour FastAPI
-httpx>=0.27.0             # Client HTTP pour TestClient et tests d'intégration API
+fastapi>=0.149.0          # Framework API REST asynchrone
+uvicorn[standard]>=0.54.0 # Serveur ASGI pour FastAPI
+httpx>=0.28.1             # Client HTTP pour TestClient et tests d'intégration API
 
 # ── Jalon 5 (Auth & Watchlists) ────────────────────────────────────────────────
-pyjwt>=2.8.0              # Création et validation des JSON Web Tokens (compatible Supabase)
-python-dotenv>=1.0.0      # Import direct de database.py, sans dépendre de la transivité de uvicorn[standard]
+pyjwt>=2.15.1             # Création et validation des JSON Web Tokens (compatible Supabase)
+python-dotenv>=1.0.1      # Import direct de database.py, sans dépendre de la transivité de uvicorn[standard]
 
 # ── Recommender System ────────────────────────────────────────────────────────
-numpy>=1.26.4,<2.0
+# numpy 1.x sur Python <= 3.12 (roues précompilées), numpy 2.x sur Python >= 3.13.
+# Les deux branches sont testées (Render en 1.x, développement local en 2.x).
+numpy>=1.26.4,<2.0; python_version < "3.13"
+numpy>=2.0; python_version >= "3.13"

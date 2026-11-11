@@ -1,0 +1,35 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  CineBook — Environnement Conda du backend (FastAPI + SQLAlchemy + NumPy)
+#
+#  Création :    conda env create -f backend/environment.yaml
+#  Activation :  conda activate cinebook
+#  Suppression : conda env remove -n cinebook
+#
+#  Alternative sans Conda (Python 3.11+ déjà installé sur la machine) :
+#    python -m venv .venv
+#    pip install -r backend/requirements.txt
+# ══════════════════════════════════════════════════════════════════════════════
+name: cinebook
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      # ── ORM & validation des schémas ────────────────────────────────────────
+      - sqlalchemy>=2.1.5
+      - pydantic>=2.14.1
+      # ── API REST & serveur ASGI ─────────────────────────────────────────────
+      - fastapi>=0.149.0
+      - 'uvicorn[standard]>=0.54.0'
+      # ── Auth (JWT) & chargement du .env ─────────────────────────────────────
+      - pyjwt>=2.15.1
+      - python-dotenv>=1.0.1
+      # ── Recommender System (similarité cosinus pondérée) ────────────────────
+      # numpy 1.x sur Python <= 3.12, numpy 2.x sur Python >= 3.13 (les deux testés)
+      - 'numpy>=1.26.4,<2.0; python_version < "3.13"'
+      - 'numpy>=2.0; python_version >= "3.13"'
+      # ── Tests unitaires & client HTTP de test ───────────────────────────────
+      - pytest>=9.1.1
+      - httpx>=0.28.1

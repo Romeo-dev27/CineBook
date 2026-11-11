@@ -53,5 +53,22 @@ build/
 **/scratch/
 scratch/
 
+# ─── Conda ───────────────────────────────────────────────────────────────────
+.conda/
+envs/
+
+# ─── Secrets & variantes .env (le modèle .env.example reste suivi) ───────────
+.env.*
+!.env.example
+
+# ─── Flutter / Dart (fichiers générés par le SDK) ────────────────────────────
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# ─── Logs & bases SQLite supplémentaires ─────────────────────────────────────
+*.log
+*.sqlite3
+
 
 
