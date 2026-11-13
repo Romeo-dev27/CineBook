@@ -472,34 +472,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDesktopLayout() {
-    return Column(
-      children: [
-        _buildHero(isDesktop: true),
-        Expanded(
-          child: Row(
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildHero(isDesktop: true),
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
                 width: 440,
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 4, 24, 32),
                   child: _buildControlsSection(),
                 ),
               ),
-              Container(
-                width: 1,
-                color: AppTheme.border.withValues(alpha: 0.6),
-              ),
               Expanded(
-                child: SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: AppTheme.border.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
                   padding: const EdgeInsets.fromLTRB(32, 4, 32, 40),
                   child: _buildResultsSection(),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

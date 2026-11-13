@@ -1,8 +1,92 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:cinebook_frontend/main.dart';
 import 'package:cinebook_frontend/models/movie.dart';
 import 'package:cinebook_frontend/models/recommendation.dart';
 
 void main() {
+  for (final width in [1440.0, 960.0]) {
+    testWidgets(
+      'Desktop at $width scrolls the hero and both columns together',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await http.runWithClient(() async {
+          await tester.pumpWidget(const CineBookApp());
+          await tester.pump(const Duration(milliseconds: 300));
+
+          final scrollable = find.byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          );
+          expect(scrollable, findsOneWidget);
+          final hero = find.text('CINEBOOK PRÉSENTE');
+          final controls = find.text('Choisis tes films de référence');
+          final results = find.text(
+            'La salle est prête. À vous de choisir le premier film.',
+          );
+          final heroBefore = tester.getTopLeft(hero).dy;
+          final controlsBefore = tester.getTopLeft(controls).dy;
+          final resultsBefore = tester.getTopLeft(results).dy;
+
+          await tester.dragFrom(const Offset(200, 820), const Offset(0, -650));
+          await tester.pump(const Duration(milliseconds: 400));
+
+          final scrollDistance = heroBefore - tester.getTopLeft(hero).dy;
+          expect(tester.getTopLeft(hero).dy, lessThan(0));
+          expect(
+            controlsBefore - tester.getTopLeft(controls).dy,
+            closeTo(scrollDistance, 1),
+          );
+          expect(
+            resultsBefore - tester.getTopLeft(results).dy,
+            closeTo(scrollDistance, 1),
+          );
+
+          final position = tester.state<ScrollableState>(scrollable).position;
+          final offsetBefore = position.pixels;
+          await tester.dragFrom(Offset(width - 100, 600), const Offset(0, 350));
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(position.pixels, lessThan(offsetBefore));
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        }, () => MockClient((_) async => http.Response('[]', 200)));
+      },
+    );
+  }
+
+  testWidgets('Mobile keeps its single lazy page scroll', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await http.runWithClient(() async {
+      await tester.pumpWidget(const CineBookApp());
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(ListView), findsOneWidget);
+      final scrollable = find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      );
+      expect(scrollable, findsOneWidget);
+      await tester.dragFrom(const Offset(190, 730), const Offset(0, -600));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        greaterThan(400),
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    }, () => MockClient((_) async => http.Response('[]', 200)));
+  });
+
   group('Models & Calculations Tests', () {
     test('MovieBrief.fromJson parses TMDb fields correctly', () {
       final json = {
@@ -57,10 +141,7 @@ void main() {
         'score': 0.885,
         'base_similarity': 0.87,
         'discovery_factor': 1.02,
-        'sub_scores': {
-          'Ambiance': 0.90,
-          'Esthétique Visuelle': 0.85,
-        },
+        'sub_scores': {'Ambiance': 0.90, 'Esthétique Visuelle': 0.85},
         'explanation': 'Ambiance très proche (90%) • Tags partagés : dark',
       };
 
@@ -111,7 +192,7 @@ void main() {
             'pacing': 0.75,
             'genres': ['Action', 'Science Fiction'],
             'atmosphere_tags': ['cyberpunk', 'dark'],
-          }
+          },
         ],
         'recommendations': [
           {
@@ -128,7 +209,7 @@ void main() {
             'discovery_factor': 1.0,
             'sub_scores': {'Rythme': 0.85},
             'explanation': 'Vibe mixte (2 films) • Rythme très proche (85%)',
-          }
+          },
         ],
       };
 
