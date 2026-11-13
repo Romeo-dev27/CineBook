@@ -21,363 +21,487 @@ class RecommendationCard extends StatelessWidget {
     this.onToggleSeed,
   });
 
-
-  Color _getScoreColor(double score) {
-    if (score >= 0.80) return AppTheme.emerald;
-    if (score >= 0.65) return AppTheme.gold;
-    return AppTheme.cyan;
-  }
-
   @override
   Widget build(BuildContext context) {
     final matchPercentage = (item.score * 100).toInt();
-    final scoreColor = _getScoreColor(item.score);
+    final scoreColor = [
+      AppTheme.gold,
+      AppTheme.cyan,
+      AppTheme.purple,
+    ][(rank - 1) % 3];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: item.isDiscoveryGem
-              ? AppTheme.cyan.withValues(alpha: 0.5)
-              : AppTheme.border,
-          width: item.isDiscoveryGem ? 1.5 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: item.isDiscoveryGem
-                ? AppTheme.cyan.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 420;
+        final posterWidth = isCompact ? 82.0 : 104.0;
+        final posterHeight = posterWidth * 1.5;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                scoreColor.withValues(alpha: 0.055),
+                AppTheme.surface.withValues(alpha: 0.99),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: scoreColor.withValues(alpha: 0.26),
+              width: item.isDiscoveryGem ? 1.4 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.20),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Bandeau supérieur (Rang, Titre, Match Score)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Poster + Bouton "Mixer +"
-                Column(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  color: scoreColor.withValues(alpha: 0.85),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(17),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(isCompact ? 14 : 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: item.posterUrl != null
-                          ? Image.network(
-                              item.posterUrl!,
-                              width: 85,
-                              height: 128,
-                              cacheWidth: (85 * MediaQuery.devicePixelRatioOf(context)).round(),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                            )
-                          : _buildPlaceholder(),
-                    ),
-                    if (onToggleSeed != null) ...[
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: 85,
-                        height: 28,
-                        child: OutlinedButton(
-                          onPressed: onToggleSeed,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            side: BorderSide(
-                              color: isSelectedSeed ? AppTheme.gold : AppTheme.border,
-                              width: 1,
+                    Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: scoreColor.withValues(alpha: 0.35),
                             ),
-                            backgroundColor: isSelectedSeed
-                                ? AppTheme.gold.withValues(alpha: 0.18)
-                                : AppTheme.surfaceElevated,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                isSelectedSeed ? Icons.check : Icons.add,
-                                size: 12,
-                                color: isSelectedSeed ? AppTheme.gold : AppTheme.textSecondary,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                isSelectedSeed ? 'Ajouté' : 'Mixer +',
-                                style: TextStyle(
-                                  color: isSelectedSeed ? AppTheme.gold : AppTheme.textSecondary,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.30),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(width: 16),
-
-                // Contenu principal
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Rang + Badge Score
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceElevated,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppTheme.border),
-                            ),
-                            child: Text(
-                              '#$rank',
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (item.isDiscoveryGem)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppTheme.cyan.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppTheme.cyan.withValues(alpha: 0.4)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(11),
+                            child: SizedBox(
+                              width: posterWidth,
+                              height: posterHeight,
+                              child: Stack(
+                                fit: StackFit.expand,
                                 children: [
-                                  Icon(Icons.diamond, color: AppTheme.cyan, size: 12),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Pépite méconnue',
-                                    style: TextStyle(
-                                      color: AppTheme.cyan,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
+                                  if (item.posterUrl != null)
+                                    Image.network(
+                                      item.posterUrl!,
+                                      cacheWidth:
+                                          (posterWidth *
+                                                  MediaQuery.devicePixelRatioOf(
+                                                    context,
+                                                  ))
+                                              .round(),
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              _buildPlaceholder(
+                                                posterWidth,
+                                                posterHeight,
+                                              ),
+                                    )
+                                  else
+                                    _buildPlaceholder(
+                                      posterWidth,
+                                      posterHeight,
+                                    ),
+                                  Positioned(
+                                    top: 7,
+                                    left: 7,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceElevated
+                                            .withValues(alpha: 0.94),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: scoreColor.withValues(
+                                            alpha: 0.55,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'N° ${rank.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          color: scoreColor,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: scoreColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: scoreColor.withValues(alpha: 0.5)),
-                            ),
-                            child: Text(
-                              '$matchPercentage% MATCH',
-                              style: TextStyle(
-                                color: scoreColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
                           ),
-                          if (onToggleWatchlist != null) ...[
-                            const SizedBox(width: 4),
-                            IconButton(
-                              icon: Icon(
-                                isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
-                                color: isWatchlisted ? AppTheme.gold : AppTheme.textMuted,
-                                size: 20,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: isWatchlisted ? 'Retirer de la watchlist' : 'Ajouter à la watchlist',
-                              onPressed: onToggleWatchlist,
-                            ),
-                          ],
-                          if (onToggleSeed != null) ...[
-                            const SizedBox(width: 4),
-                            IconButton(
-                              icon: Icon(
-                                isSelectedSeed ? Icons.check_circle : Icons.playlist_add,
-                                color: isSelectedSeed ? AppTheme.gold : AppTheme.textMuted,
-                                size: 20,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: isSelectedSeed
-                                  ? 'Retirer des films sélectionnés'
-                                  : 'Ajouter à la sélection de mixage (+)',
+                        ),
+                        if (onToggleSeed != null) ...[
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: posterWidth,
+                            height: 32,
+                            child: OutlinedButton(
                               onPressed: onToggleSeed,
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                side: BorderSide(
+                                  color: isSelectedSeed
+                                      ? AppTheme.gold
+                                      : AppTheme.border,
+                                ),
+                                backgroundColor: isSelectedSeed
+                                    ? AppTheme.gold.withValues(alpha: 0.16)
+                                    : AppTheme.surfaceElevated,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    isSelectedSeed ? Icons.check : Icons.add,
+                                    size: 13,
+                                    color: isSelectedSeed
+                                        ? AppTheme.goldLight
+                                        : AppTheme.textSecondary,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    isSelectedSeed ? 'AJOUTÉ' : 'MIXER +',
+                                    style: TextStyle(
+                                      color: isSelectedSeed
+                                          ? AppTheme.goldLight
+                                          : AppTheme.textSecondary,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    SizedBox(width: isCompact ? 13 : 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Wrap(
+                                  spacing: 7,
+                                  runSpacing: 7,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scoreColor.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        borderRadius: BorderRadius.circular(7),
+                                        border: Border.all(
+                                          color: scoreColor.withValues(
+                                            alpha: 0.25,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '$matchPercentage% VIBE',
+                                        style: TextStyle(
+                                          color: scoreColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.6,
+                                        ),
+                                      ),
+                                    ),
+                                    if (item.isDiscoveryGem)
+                                      _buildDiscoveryBadge(),
+                                  ],
+                                ),
+                              ),
+                              if (onToggleWatchlist != null ||
+                                  onToggleSeed != null)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (onToggleWatchlist != null)
+                                      _buildActionButton(
+                                        icon: isWatchlisted
+                                            ? Icons.bookmark
+                                            : Icons.bookmark_border,
+                                        color: isWatchlisted
+                                            ? AppTheme.goldLight
+                                            : AppTheme.textMuted,
+                                        tooltip: isWatchlisted
+                                            ? 'Retirer de la watchlist'
+                                            : 'Ajouter à la watchlist',
+                                        onPressed: onToggleWatchlist!,
+                                      ),
+                                    if (onToggleWatchlist != null &&
+                                        onToggleSeed != null)
+                                      const SizedBox(width: 5),
+                                    if (onToggleSeed != null)
+                                      _buildActionButton(
+                                        icon: isSelectedSeed
+                                            ? Icons.check_circle
+                                            : Icons.playlist_add,
+                                        color: isSelectedSeed
+                                            ? AppTheme.goldLight
+                                            : AppTheme.textMuted,
+                                        tooltip: isSelectedSeed
+                                            ? 'Retirer des films sélectionnés'
+                                            : 'Ajouter à la sélection de mixage',
+                                        onPressed: onToggleSeed!,
+                                      ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            item.title,
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: isCompact ? 18 : 20,
+                              height: 1.15,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 5,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                '${item.year}',
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    color: AppTheme.gold,
+                                    size: 15,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${item.voteAverage.toStringAsFixed(1)}/10',
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '${item.voteCount} avis',
+                                style: const TextStyle(
+                                  color: AppTheme.textMuted,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 11),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: item.genres.take(3).map((genre) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceElevated.withValues(
+                                    alpha: 0.75,
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppTheme.border.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  genre,
+                                  style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          if (item.streamingProviders.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            StreamingBadges(
+                              providers: item.streamingProviders,
+                              logoSize: 22,
+                              showHeader: true,
                             ),
                           ],
                         ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Titre & Année
-                      Text(
-                        item.title,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Année, Note, Votes
-                      Row(
-                        children: [
-                          Text(
-                            '${item.year}',
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Icon(Icons.star, color: AppTheme.gold, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${item.voteAverage.toStringAsFixed(1)}/10',
-                            style: const TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '(${item.voteCount} avis)',
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Genres
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: item.genres.take(3).map((g) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceElevated,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              g,
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      // Badges de streaming (TMDb Watch Providers)
-                      if (item.streamingProviders.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        StreamingBadges(
-                          providers: item.streamingProviders,
-                          logoSize: 22.0,
-                          showHeader: true,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Bloc "Pourquoi ce film ?" (Explication explicite)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15)),
-              border: const Border(top: BorderSide(color: AppTheme.border)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline, color: AppTheme.gold, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      'POURQUOI CE FILM ?',
-                      style: TextStyle(
-                        color: AppTheme.gold,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  item.explanation.isNotEmpty
-                      ? item.explanation
-                      : 'Similarité générale calculée sur les 6 vecteurs de caractéristiques.',
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  isCompact ? 14 : 18,
+                  15,
+                  isCompact ? 14 : 18,
+                  16,
                 ),
-                const SizedBox(height: 10),
-
-                // Mini barres de sous-scores
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 6,
-                  children: item.subScores.entries.map((entry) {
-                    final percent = (entry.value * 100).toInt();
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      scoreColor.withValues(alpha: 0.035),
+                      Colors.black.withValues(alpha: 0.18),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(17),
+                  ),
+                  border: const Border(top: BorderSide(color: AppTheme.border)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          '${entry.key} :',
-                          style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 11,
-                          ),
+                        Icon(
+                          Icons.auto_awesome_outlined,
+                          color: scoreColor,
+                          size: 16,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 7),
                         Text(
-                          '$percent%',
+                          'POURQUOI CETTE VIBE ?',
                           style: TextStyle(
-                            color: entry.value >= 0.70
-                                ? AppTheme.emerald
-                                : AppTheme.textSecondary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                            color: scoreColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.1,
                           ),
                         ),
                       ],
-                    );
-                  }).toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.explanation.isNotEmpty
+                          ? item.explanation
+                          : 'Similarité générale calculée sur les 6 vecteurs de caractéristiques.',
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 13),
+                    Wrap(
+                      spacing: 14,
+                      runSpacing: 11,
+                      children: item.subScores.entries
+                          .map(_buildSubScore)
+                          .toList(),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceElevated.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: color, size: 18),
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        tooltip: tooltip,
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildDiscoveryBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppTheme.cyan.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: AppTheme.cyan.withValues(alpha: 0.4)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.diamond_outlined, color: AppTheme.cyan, size: 12),
+          SizedBox(width: 4),
+          Text(
+            'PÉPITE',
+            style: TextStyle(
+              color: AppTheme.cyan,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.7,
             ),
           ),
         ],
@@ -385,12 +509,66 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildSubScore(MapEntry<String, double> entry) {
+    final percent = (entry.value * 100).toInt();
+    final color = entry.value >= 0.70 ? AppTheme.emerald : AppTheme.goldLight;
+
+    return SizedBox(
+      width: 126,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  entry.key.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '$percent%',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: entry.value.clamp(0.0, 1.0),
+              minHeight: 3,
+              backgroundColor: AppTheme.surfaceElevated,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(double width, double height) {
     return Container(
-      width: 85,
-      height: 128,
+      width: width,
+      height: height,
       color: AppTheme.surfaceElevated,
-      child: const Icon(Icons.movie, color: AppTheme.textMuted, size: 30),
+      child: const Icon(
+        Icons.movie_outlined,
+        color: AppTheme.textMuted,
+        size: 30,
+      ),
     );
   }
 }

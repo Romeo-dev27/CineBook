@@ -10,6 +10,7 @@ import 'widgets/weight_sliders.dart';
 import 'widgets/recommendation_card.dart';
 import 'widgets/auth_dialog.dart';
 import 'widgets/watchlist_drawer.dart';
+import 'widgets/cinematic_backdrop.dart';
 
 void main() {
   runApp(const CineBookApp());
@@ -258,49 +259,113 @@ class _HomeScreenState extends State<HomeScreen> {
           _fetchRecommendations();
         },
       ),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        toolbarHeight: isCompact ? 64 : 78,
+        titleSpacing: isCompact ? 16 : 24,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                color: AppTheme.gold.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppTheme.goldLight, AppTheme.gold],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.gold.withValues(alpha: 0.12),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: const Icon(
-                Icons.movie_creation_outlined,
-                color: AppTheme.gold,
+                Icons.movie_filter_rounded,
+                color: Color(0xFF171006),
                 size: 22,
               ),
             ),
             const SizedBox(width: 12),
-            const Flexible(
-              child: Text(
-                'CineBook',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'CINE',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.4,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'BOOK',
+                          style: TextStyle(
+                            color: AppTheme.gold,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isCompact)
+                    const Text(
+                      'LE CINÉMA, PAR ATMOSPHÈRE',
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                ],
               ),
             ),
-            if (!isCompact) ...[
-              const SizedBox(width: 8),
+            if (screenWidth >= 1100) ...[
+              const SizedBox(width: 20),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.white.withValues(alpha: 0.025),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppTheme.border),
                 ),
-                child: const Text(
-                  'FLUTTER + SUPABASE AUTH',
-                  style: TextStyle(
-                    color: AppTheme.gold,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.gold,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    const Text(
+                      'RECOMMANDATION SUR MESURE',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -398,28 +463,40 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(
-        child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+      body: CinematicBackdrop(
+        child: SafeArea(
+          child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+        ),
       ),
     );
   }
 
   Widget _buildDesktopLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        SizedBox(
-          width: 420,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: _buildControlsSection(),
-          ),
-        ),
-        const VerticalDivider(color: AppTheme.border, width: 1),
+        _buildHero(isDesktop: true),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: _buildResultsSection(),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 440,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 32),
+                  child: _buildControlsSection(),
+                ),
+              ),
+              Container(
+                width: 1,
+                color: AppTheme.border.withValues(alpha: 0.6),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(32, 4, 32, 40),
+                  child: _buildResultsSection(),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -428,14 +505,334 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMobileLayout() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
+        _buildHero(isDesktop: false),
         _buildControlsSection(),
-        const SizedBox(height: 24),
-        const Divider(color: AppTheme.border),
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
         ..._buildResultsChildren(),
       ],
+    );
+  }
+
+  Widget _buildHero({required bool isDesktop}) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isDesktop ? 24 : 0,
+        isDesktop ? 20 : 8,
+        isDesktop ? 24 : 0,
+        isDesktop ? 24 : 26,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isDesktop ? 24 : 20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.surfaceElevated.withValues(alpha: 0.88),
+                AppTheme.surface.withValues(alpha: 0.96),
+                AppTheme.cyan.withValues(alpha: 0.035),
+              ],
+            ),
+            border: Border.all(color: AppTheme.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 28,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(isDesktop ? 30 : 22),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.gold.withValues(
+                                        alpha: 0.12,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppTheme.gold.withValues(
+                                          alpha: 0.32,
+                                        ),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'CINEBOOK PRÉSENTE',
+                                      style: TextStyle(
+                                        color: AppTheme.goldLight,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.cyan.withValues(
+                                        alpha: 0.06,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppTheme.cyan.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'SÉANCE 001',
+                                      style: TextStyle(
+                                        color: AppTheme.cyan,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: isDesktop ? 20 : 18),
+                              Text.rich(
+                                const TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'TON CINÉMA.\n',
+                                      style: TextStyle(
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'TES VIBES.',
+                                      style: TextStyle(
+                                        color: AppTheme.goldLight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                style: TextStyle(
+                                  fontSize: isDesktop ? 48 : 34,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.04,
+                                  letterSpacing: -1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Un film suffit pour trouver la prochaine séance qui te ressemble.',
+                                style: TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: isDesktop ? 17 : 15,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 650,
+                                ),
+                                child: Text(
+                                  'Mixe les ambiances, ajuste le rythme et explore une sélection pensée pour toi, entre valeurs sûres et belles découvertes.',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: isDesktop ? 14 : 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: const [
+                                  _HeroVibeTag(
+                                    label: 'RESSENS',
+                                    icon: Icons.favorite_rounded,
+                                    color: AppTheme.gold,
+                                  ),
+                                  _HeroVibeTag(
+                                    label: 'EXPLORE',
+                                    icon: Icons.explore_rounded,
+                                    color: AppTheme.cyan,
+                                  ),
+                                  _HeroVibeTag(
+                                    label: 'DÉCOUVRE',
+                                    icon: Icons.auto_awesome_rounded,
+                                    color: AppTheme.purple,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isDesktop) ...[
+                          const SizedBox(width: 28),
+                          Container(
+                            width: 220,
+                            padding: const EdgeInsets.all(22),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceElevated.withValues(
+                                alpha: 0.78,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppTheme.gold.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome_rounded,
+                                      color: AppTheme.gold,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 7),
+                                    Text(
+                                      'VIBE ENGINE',
+                                      style: TextStyle(
+                                        color: AppTheme.goldLight,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  '142',
+                                  style: TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'films à explorer',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                const Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '5 DIMENSIONS',
+                                        style: TextStyle(
+                                          color: AppTheme.textMuted,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '∞ POSSIBILITÉS',
+                                      style: TextStyle(
+                                        color: AppTheme.cyan,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    for (final color in [
+                                      AppTheme.gold,
+                                      AppTheme.goldLight,
+                                      AppTheme.cyan,
+                                      AppTheme.purple,
+                                      AppTheme.textMuted,
+                                    ])
+                                      Expanded(
+                                        child: Container(
+                                          height: 5,
+                                          margin: const EdgeInsets.only(
+                                            right: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: color.withValues(alpha: 0.8),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceElevated.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.border),
+                      ),
+                      child: const SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          'AMBIANCE  •  COULEUR  •  RYTHME  •  ÉPOQUE  •  GENRE  •  DÉCOUVERTE',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -446,13 +843,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildStreamingFilterBar(),
         const SizedBox(height: 18),
 
-        const Text(
-          '1. Choisis tes films de référence (Multi-sélection & Mix)',
-          style: TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        _buildStepHeading(
+          number: '01',
+          eyebrow: 'LE CASTING',
+          title: 'Choisis tes films de référence',
         ),
         const SizedBox(height: 10),
 
@@ -476,7 +870,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         if (!_isLoadingQuickPicks && _quickPicks.isNotEmpty) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
+          const Text(
+            'SÉLECTION RAPIDE',
+            style: TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.6,
+            ),
+          ),
+          const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -488,18 +892,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     avatar: Icon(
                       isSelected ? Icons.check : Icons.add,
                       size: 13,
-                      color: isSelected ? AppTheme.gold : AppTheme.textMuted,
+                      color: isSelected
+                          ? const Color(0xFF171006)
+                          : AppTheme.cyan,
                     ),
                     label: Text(m.title),
                     backgroundColor: isSelected
-                        ? AppTheme.gold.withValues(alpha: 0.2)
+                        ? AppTheme.gold
                         : AppTheme.surfaceElevated,
                     side: BorderSide(
-                      color: isSelected ? AppTheme.gold : AppTheme.border,
+                      color: isSelected ? AppTheme.goldLight : AppTheme.border,
                     ),
                     labelStyle: TextStyle(
                       color: isSelected
-                          ? AppTheme.gold
+                          ? const Color(0xFF171006)
                           : AppTheme.textSecondary,
                       fontSize: 11,
                       fontWeight: isSelected
@@ -532,13 +938,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
         ],
 
-        const Text(
-          '2. Ajuste les dimensions de recommandation',
-          style: TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        _buildStepHeading(
+          number: '02',
+          eyebrow: 'LA RÉGIE',
+          title: 'Compose ton ambiance',
         ),
         const SizedBox(height: 10),
 
@@ -553,8 +956,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
         const SizedBox(height: 20),
 
-        SizedBox(
-          height: 52,
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppTheme.gold,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.gold.withValues(alpha: 0.16),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: ElevatedButton.icon(
             icon: _isLoading
                 ? const SizedBox(
@@ -562,18 +976,80 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.black,
+                      color: Color(0xFF171006),
                     ),
                   )
-                : const Icon(Icons.auto_awesome, color: Colors.black),
+                : const Icon(Icons.auto_awesome, color: Color(0xFF171006)),
             label: Text(
               _isLoading
-                  ? 'CALCUL DU COSINUS EN COURS...'
+                  ? 'COMPOSITION EN COURS...'
                   : (_selectedSeeds.length > 1
-                        ? 'MIXER LES ${_selectedSeeds.length} FILMS 🎬'
-                        : 'GÉNÉRER LES RECOMMANDATIONS 🎬'),
+                        ? 'MIXER LES ${_selectedSeeds.length} FILMS'
+                        : 'COMPOSER MA SÉLECTION'),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              disabledBackgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              foregroundColor: const Color(0xFF171006),
+              disabledForegroundColor: const Color(0xFF171006),
             ),
             onPressed: _isLoading ? null : _fetchRecommendations,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepHeading({
+    required String number,
+    required String eyebrow,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppTheme.gold,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            number,
+            style: const TextStyle(
+              color: Color(0xFF171006),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                eyebrow,
+                style: const TextStyle(
+                  color: AppTheme.cyan,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.8,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -590,13 +1066,20 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedSeeds.length;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.gold.withValues(alpha: 0.10),
+            AppTheme.surface.withValues(alpha: 0.94),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.gold.withValues(alpha: 0.45),
-          width: 1.5,
+          color: AppTheme.gold.withValues(alpha: 0.35),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
@@ -831,8 +1314,12 @@ class _HomeScreenState extends State<HomeScreen> {
               CircularProgressIndicator(color: AppTheme.gold),
               SizedBox(height: 20),
               Text(
-                'Calcul de la Similarité Cosinus Pondérée...',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                'La projection se prépare...',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: 6),
               Text(
@@ -854,7 +1341,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Icon(
-                Icons.movie_filter_outlined,
+                Icons.theaters_outlined,
                 color: AppTheme.textMuted.withValues(alpha: 0.5),
                 size: 64,
               ),
@@ -862,7 +1349,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 isFiltered
                     ? 'Aucun film trouvé sur $_selectedProvider pour cette sélection'
-                    : 'Aucune recommandation générée pour l\'instant',
+                    : 'La salle est prête. À vous de choisir le premier film.',
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 16,
@@ -927,26 +1414,79 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return [
-      Row(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.recommend, color: AppTheme.gold, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(
+                    color: AppTheme.gold.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: const Text(
+                  'TA SÉANCE SUR MESURE',
+                  style: TextStyle(
+                    color: AppTheme.goldLight,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.3,
+                  ),
+                ),
               ),
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.graphic_eq_rounded,
+                    color: AppTheme.cyan,
+                    size: 17,
+                  ),
+                  SizedBox(width: 5),
+                  Text(
+                    'VIBES EN DIRECT',
+                    style: TextStyle(
+                      color: AppTheme.cyan,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              height: 1.15,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+              height: 1.45,
             ),
           ),
         ],
-      ),
-      const SizedBox(height: 6),
-      Text(
-        subtitle,
-        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
       ),
       if (_selectedProvider != 'Tous') ...[
         const SizedBox(height: 12),
@@ -990,14 +1530,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ...List.generate(recs.length, (index) {
         final item = recs[index];
         final isSeed = _selectedSeeds.any((s) => s.id == item.id);
-        return RepaintBoundary(
-          child: RecommendationCard(
-            item: item,
-            rank: index + 1,
-            isWatchlisted: _authService.isMovieInWatchlist(item.id),
-            onToggleWatchlist: () => _handleToggleWatchlist(item),
-            isSelectedSeed: isSeed,
-            onToggleSeed: () => _toggleSeed(item.toMovieBrief()),
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 320 + index * 60),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) => Opacity(
+            opacity: value,
+            child: Transform.translate(
+              offset: Offset(0, 16 * (1 - value)),
+              child: child,
+            ),
+          ),
+          child: RepaintBoundary(
+            child: RecommendationCard(
+              item: item,
+              rank: index + 1,
+              isWatchlisted: _authService.isMovieInWatchlist(item.id),
+              onToggleWatchlist: () => _handleToggleWatchlist(item),
+              isSelectedSeed: isSeed,
+              onToggleSeed: () => _toggleSeed(item.toMovieBrief()),
+            ),
           ),
         );
       }),
@@ -1006,11 +1558,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildStreamingFilterBar() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
+        color: AppTheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.85)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1020,7 +1572,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Icon(Icons.live_tv_rounded, size: 14, color: AppTheme.gold),
               const SizedBox(width: 6),
               const Text(
-                'PLATEFORME DE STREAMING',
+                'DISPONIBILITÉ · STREAMING',
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 10.5,
@@ -1178,5 +1730,45 @@ class _HomeScreenState extends State<HomeScreen> {
     if (provider == 'Amazon Prime Video') return const Color(0xFF00A8E1);
     if (provider == 'Apple TV') return const Color(0xFFA2AAAD);
     return AppTheme.gold;
+  }
+}
+
+class _HeroVibeTag extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _HeroVibeTag({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
