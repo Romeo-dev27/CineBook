@@ -85,7 +85,7 @@ class ReferenceCard extends StatelessWidget {
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      tooltip: 'Changer de film',
+                      tooltip: 'Retirer ce film de référence',
                       onPressed: onClear,
                     ),
                   ],

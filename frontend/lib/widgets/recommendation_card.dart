@@ -161,7 +161,7 @@ class RecommendationCard extends StatelessWidget {
                           const SizedBox(height: 10),
                           SizedBox(
                             width: posterWidth,
-                            height: 32,
+                            height: 44,
                             child: OutlinedButton(
                               onPressed: onToggleSeed,
                               style: OutlinedButton.styleFrom(
@@ -189,15 +189,19 @@ class RecommendationCard extends StatelessWidget {
                                         : AppTheme.textSecondary,
                                   ),
                                   const SizedBox(width: 3),
-                                  Text(
-                                    isSelectedSeed ? 'AJOUTÉ' : 'MIXER +',
-                                    style: TextStyle(
-                                      color: isSelectedSeed
-                                          ? AppTheme.goldLight
-                                          : AppTheme.textSecondary,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.4,
+                                  Flexible(
+                                    child: Text(
+                                      isSelectedSeed
+                                          ? 'Retirer du mix'
+                                          : 'Ajouter au mix',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isSelectedSeed
+                                            ? AppTheme.goldLight
+                                            : AppTheme.textSecondary,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
                                 ],

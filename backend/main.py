@@ -110,3 +110,11 @@ def health_check(db: Session = Depends(get_db)):
         "database": "connected",
         "indexed_movies": movie_count,
     }
+
+
+# Point d'entrée direct (python backend/main.py) — utilisé par Wasmer Edge.
+# Render passe par start.sh/uvicorn et n'exécute jamais ce bloc.
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

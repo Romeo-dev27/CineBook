@@ -1,0 +1,20 @@
+# pyproject.toml — lu par Wasmer Edge pour installer les dépendances Python.
+# Render utilise backend/requirements.txt via build.sh ; Vercel build le frontend
+# Flutter via frontend/vercel.json : ce fichier ne les affecte pas.
+# Pas de uvicorn[standard] ici : uvloop/httptools sont natifs et incompatibles WASI.
+[project]
+name = "cinebook"
+version = "1.0.0"
+description = "CineBook — API de recommandation de films (FastAPI + SQLAlchemy + numpy)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.149.0",
+    "uvicorn>=0.54.0",
+    "sqlalchemy>=2.1.5",
+    "pydantic>=2.14.1",
+    "pyjwt>=2.15.1",
+    "python-dotenv>=1.0.1",
+    "numpy>=1.26.4,<2.0; python_version < '3.13'",
+    "numpy>=2.0; python_version >= '3.13'",
+]

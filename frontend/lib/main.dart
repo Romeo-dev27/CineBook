@@ -41,8 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
+  final ScrollController _pageController = ScrollController();
+  final GlobalKey _resultsKey = GlobalKey();
+  int _recommendationRequest = 0;
+  int _browseRequest = 0;
+  bool _settingsChanged = false;
+  List<String> _genres = [];
+  String? _selectedGenre;
+  String? _browseError;
 
-  List<MovieBrief> _selectedSeeds = [];
+  final List<MovieBrief> _selectedSeeds = [];
   RecommendationWeights _weights = RecommendationWeights.equilibre;
   double _discoverySlider = 0.3;
   int _topN = 5;
@@ -66,11 +74,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _authService.addListener(_onAuthChanged);
     _loadQuickPicks();
+    _apiService.getGenres().then((genres) {
+      if (mounted) setState(() => _genres = genres);
+    });
   }
 
   @override
   void dispose() {
     _authService.removeListener(_onAuthChanged);
+    _authService.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -79,28 +92,51 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadQuickPicks() async {
+    final request = ++_browseRequest;
+    setState(() {
+      _isLoadingQuickPicks = true;
+      _browseError = null;
+    });
     try {
-      final movies = await _apiService.getMovies(limit: 6);
-      if (mounted) {
+      final movies = await _apiService.getMovies(
+        limit: 12,
+        genre: _selectedGenre,
+      );
+      if (mounted && request == _browseRequest) {
         setState(() {
           _quickPicks = movies;
           _isLoadingQuickPicks = false;
-          if (movies.isNotEmpty && _selectedSeeds.isEmpty) {
-            final defaultSeed = movies.firstWhere(
-              (m) => m.title.contains('Blade Runner 2049'),
-              orElse: () => movies.first,
-            );
-            _selectedSeeds.add(defaultSeed);
-          }
         });
-        if (_selectedSeeds.isNotEmpty) {
-          _fetchRecommendations();
-        }
       }
     } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingQuickPicks = false);
+      if (mounted && request == _browseRequest) {
+        setState(() {
+          _isLoadingQuickPicks = false;
+          _browseError = 'Impossible de charger les suggestions.';
+        });
       }
+    }
+  }
+
+  void _clearSeeds() {
+    setState(() {
+      _selectedSeeds.clear();
+      _response = null;
+      _errorMessage = null;
+      _isLoading = false;
+      _recommendationRequest++;
+    });
+  }
+
+  void _showResults() {
+    FocusScope.of(context).unfocus();
+    final target = _resultsKey.currentContext;
+    if (target != null) {
+      Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -135,18 +171,25 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         backgroundColor: AppTheme.surfaceElevated,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
+        action: _selectedSeeds.isEmpty
+            ? null
+            : SnackBarAction(
+                label: 'Voir',
+                textColor: AppTheme.goldLight,
+                onPressed: _showResults,
+              ),
       ),
     );
 
     if (_selectedSeeds.isNotEmpty) {
       _fetchRecommendations();
     } else {
-      setState(() => _response = null);
+      _clearSeeds();
     }
   }
 
-  Future<void> _fetchRecommendations() async {
+  Future<void> _fetchRecommendations({bool showResults = false}) async {
     if (_selectedSeeds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -157,11 +200,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    final request = ++_recommendationRequest;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _settingsChanged = false;
     });
-
     try {
       final res = await _apiService.getRecommendations(
         movieIds: _selectedSeeds.map((m) => m.id).toList(),
@@ -170,19 +214,24 @@ class _HomeScreenState extends State<HomeScreen> {
         discoverySlider: _discoverySlider,
         provider: _selectedProvider == 'Tous' ? null : _selectedProvider,
       );
-      if (mounted) {
+      if (mounted && request == _recommendationRequest) {
         setState(() {
           _response = res;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && request == _recommendationRequest) {
         setState(() {
           _errorMessage = e.toString().replaceAll('Exception: ', '');
           _isLoading = false;
         });
       }
+    }
+    if (showResults && mounted && request == _recommendationRequest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && request == _recommendationRequest) _showResults();
+      });
     }
   }
 
@@ -259,121 +308,141 @@ class _HomeScreenState extends State<HomeScreen> {
           _fetchRecommendations();
         },
       ),
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppTheme.background,
+        surfaceTintColor: Colors.transparent,
         toolbarHeight: isCompact ? 64 : 78,
-        titleSpacing: isCompact ? 16 : 24,
+        titleSpacing: isCompact ? 12 : 24,
+        bottom: isDesktop
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: _buildHeaderSearch(),
+                ),
+              ),
         title: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.goldLight, AppTheme.gold],
+            Tooltip(
+              message: 'Accueil — explorer les films',
+              child: InkWell(
+                onTap: () => _pageController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeOutCubic,
                 ),
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.gold.withValues(alpha: 0.12),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+                child: Container(
+                  width: isCompact ? 32 : 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppTheme.goldLight, AppTheme.gold],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.gold.withValues(alpha: 0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.movie_filter_rounded,
-                color: Color(0xFF171006),
-                size: 22,
+                  child: const Icon(
+                    Icons.movie_filter_rounded,
+                    color: Color(0xFF171006),
+                    size: 22,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  RichText(
-                    overflow: TextOverflow.ellipsis,
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'CINE',
-                          style: TextStyle(
-                            color: AppTheme.textPrimary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2.4,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'BOOK',
-                          style: TextStyle(
-                            color: AppTheme.gold,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!isCompact)
-                    const Text(
-                      'LE CINÉMA, PAR ATMOSPHÈRE',
-                      style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (screenWidth >= 1100) ...[
-              const SizedBox(width: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
+              child: InkWell(
+                onTap: () => _pageController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeOutCubic,
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.025),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.gold,
-                        shape: BoxShape.circle,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'CINE',
+                              style: TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.4,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'BOOK',
+                              style: TextStyle(
+                                color: AppTheme.gold,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.4,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 7),
-                    const Text(
-                      'RECOMMANDATION SUR MESURE',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.4,
+                    if (!isCompact)
+                      const Text(
+                        'LE CINÉMA, PAR ATMOSPHÈRE',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2.0,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
+            ),
+            if (isDesktop) ...[
+              const SizedBox(width: 24),
+              Expanded(flex: 2, child: _buildHeaderSearch()),
             ],
           ],
         ),
         actions: [
-          // Statut ou Bouton Auth
-          if (!_authService.isAuthenticated)
+          TextButton.icon(
+            onPressed: () {
+              FocusScope.of(context).unfocus();
+              _scaffoldKey.currentState?.openEndDrawer();
+            },
+            icon: const Icon(Icons.bookmarks_outlined, size: 19),
+            label: Text(
+              _authService.isAuthenticated
+                  ? 'Watchlist (${_authService.watchlist.length})'
+                  : 'Watchlist',
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+          ),
+          if (isCompact && !_authService.isAuthenticated)
+            IconButton(
+              tooltip: 'Connexion (facultative)',
+              icon: const Icon(Icons.account_circle_outlined),
+              onPressed: () => AuthDialog.show(context, _authService),
+            )
+          else if (!_authService.isAuthenticated)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: OutlinedButton.icon(
@@ -392,64 +461,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             )
           else ...[
-            // Bouton Watchlist avec compteur
-            InkWell(
-              onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: EdgeInsets.symmetric(
-                  horizontal: isCompact ? 8 : 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.gold.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.bookmarks, color: AppTheme.gold, size: 16),
-                    if (!isCompact) ...[
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Watchlist',
-                        style: TextStyle(
-                          color: AppTheme.gold,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.gold,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${_authService.watchlist.length}',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // Profil Utilisateur
             IconButton(
               icon: const Icon(
                 Icons.account_circle,
@@ -471,8 +482,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildHeaderSearch() {
+    return MovieSearchBar(
+      apiService: _apiService,
+      selectedSeeds: _selectedSeeds,
+      onMovieSelected: (movie) {
+        if (!_selectedSeeds.any((seed) => seed.id == movie.id)) {
+          _toggleSeed(movie);
+        }
+      },
+    );
+  }
+
   Widget _buildDesktopLayout() {
     return SingleChildScrollView(
+      controller: _pageController,
       child: Column(
         children: [
           _buildHero(isDesktop: true),
@@ -507,18 +531,90 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMobileLayout() {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-      children: [
-        _buildHero(isDesktop: false),
-        _buildControlsSection(),
-        const SizedBox(height: 32),
-        ..._buildResultsChildren(),
+    return CustomScrollView(
+      controller: _pageController,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildHero(isDesktop: false),
+                _buildControlsSection(),
+                const SizedBox(height: 24),
+                SizedBox(key: _resultsKey, height: 1, width: double.infinity),
+              ],
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+          sliver: SliverList.list(
+            children: [
+              _buildStreamingFilterBar(),
+              const SizedBox(height: 16),
+              ..._buildResultsChildren(),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildHero({required bool isDesktop}) {
+    if (!_authService.isAuthenticated) {
+      return Container(
+        width: double.infinity,
+        margin: EdgeInsets.fromLTRB(
+          isDesktop ? 24 : 0,
+          20,
+          isDesktop ? 24 : 0,
+          24,
+        ),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'DÉCOUVRIR SANS COMPTE',
+              style: TextStyle(
+                color: AppTheme.goldLight,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Quel film regarder ce soir ?',
+              style: TextStyle(
+                fontSize: isDesktop ? 32 : 26,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Recherche un film que tu aimes ou choisis une suggestion. CineBook te propose aussitôt des films similaires.',
+              style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Aucune inscription nécessaire. Un compte sert uniquement à sauvegarder ta Watchlist.',
+              style: TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: EdgeInsets.fromLTRB(
         isDesktop ? 24 : 0,
@@ -843,34 +939,58 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildStreamingFilterBar(),
-        const SizedBox(height: 18),
-
         _buildStepHeading(
           number: '01',
-          eyebrow: 'LE CASTING',
-          title: 'Choisis tes films de référence',
+          eyebrow: 'TON POINT DE DÉPART',
+          title: 'Choisis un film que tu aimes',
         ),
         const SizedBox(height: 10),
-
-        MovieSearchBar(
-          apiService: _apiService,
-          selectedSeeds: _selectedSeeds,
-          onSelectionChanged: (seeds) {
-            setState(() => _selectedSeeds = List.from(seeds));
-            if (_selectedSeeds.isNotEmpty) {
-              _fetchRecommendations();
-            } else {
-              setState(() => _response = null);
-            }
-          },
-          onClearAllSeeds: () {
-            setState(() {
-              _selectedSeeds.clear();
-              _response = null;
-            });
-          },
+        const Text(
+          'Utilise la recherche en haut ou les suggestions ci-dessous. Tu peux combiner plusieurs films.',
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 13,
+            height: 1.5,
+          ),
         ),
+        const SizedBox(height: 16),
+        if (_genres.isNotEmpty)
+          DropdownButtonFormField<String>(
+            initialValue: _selectedGenre ?? '',
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Suggestions par genre',
+            ),
+            items: [
+              const DropdownMenuItem(value: '', child: Text('Tous les genres')),
+              ..._genres.map(
+                (genre) => DropdownMenuItem(value: genre, child: Text(genre)),
+              ),
+            ],
+            onChanged: (genre) {
+              setState(() => _selectedGenre = genre == '' ? null : genre);
+              _loadQuickPicks();
+            },
+          ),
+        if (_isLoadingQuickPicks)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: LinearProgressIndicator(),
+          )
+        else if (_browseError != null) ...[
+          Text(_browseError!, style: const TextStyle(color: AppTheme.ruby)),
+          TextButton.icon(
+            onPressed: _loadQuickPicks,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer les suggestions'),
+          ),
+        ] else if (_quickPicks.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              'Aucune suggestion pour ce genre. Essaie un autre genre ou la recherche en haut.',
+            ),
+          ),
 
         if (!_isLoadingQuickPicks && _quickPicks.isNotEmpty) ...[
           const SizedBox(height: 14),
@@ -884,57 +1004,46 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _quickPicks.map((m) {
-                final isSelected = _selectedSeeds.any((s) => s.id == m.id);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: ActionChip(
-                    avatar: Icon(
-                      isSelected ? Icons.check : Icons.add,
-                      size: 13,
-                      color: isSelected
-                          ? const Color(0xFF171006)
-                          : AppTheme.cyan,
-                    ),
-                    label: Text(m.title),
-                    backgroundColor: isSelected
-                        ? AppTheme.gold
-                        : AppTheme.surfaceElevated,
-                    side: BorderSide(
-                      color: isSelected ? AppTheme.goldLight : AppTheme.border,
-                    ),
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? const Color(0xFF171006)
-                          : AppTheme.textSecondary,
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onPressed: () => _toggleSeed(m),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _quickPicks.map((m) {
+              final isSelected = _selectedSeeds.any((s) => s.id == m.id);
+              return Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: ActionChip(
+                  avatar: Icon(
+                    isSelected ? Icons.check : Icons.add,
+                    size: 13,
+                    color: isSelected ? const Color(0xFF171006) : AppTheme.cyan,
                   ),
-                );
-              }).toList(),
-            ),
+                  label: Text(m.title),
+                  backgroundColor: isSelected
+                      ? AppTheme.gold
+                      : AppTheme.surfaceElevated,
+                  side: BorderSide(
+                    color: isSelected ? AppTheme.goldLight : AppTheme.border,
+                  ),
+                  labelStyle: TextStyle(
+                    color: isSelected
+                        ? const Color(0xFF171006)
+                        : AppTheme.textSecondary,
+                    fontSize: 11,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                  onPressed: () => _toggleSeed(m),
+                ),
+              );
+            }).toList(),
           ),
         ],
 
         const SizedBox(height: 16),
 
         if (_selectedSeeds.length == 1) ...[
-          ReferenceCard(
-            movie: _selectedSeeds.first,
-            onClear: () {
-              setState(() {
-                _selectedSeeds.clear();
-                _response = null;
-              });
-            },
-          ),
+          ReferenceCard(movie: _selectedSeeds.first, onClear: _clearSeeds),
           const SizedBox(height: 20),
         ] else if (_selectedSeeds.length > 1) ...[
           _buildBlendedSeedsCard(),
@@ -943,26 +1052,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
         _buildStepHeading(
           number: '02',
-          eyebrow: 'LA RÉGIE',
-          title: 'Compose ton ambiance',
+          eyebrow: 'TA SÉLECTION',
+          title: 'Découvre les films proposés',
         ),
         const SizedBox(height: 10),
-
-        WeightSliders(
-          weights: _weights,
-          discoverySlider: _discoverySlider,
-          topN: _topN,
-          onWeightsChanged: (w) => setState(() => _weights = w),
-          onDiscoveryChanged: (d) => setState(() => _discoverySlider = d),
-          onTopNChanged: (n) => setState(() => _topN = n),
+        Semantics(
+          liveRegion: true,
+          child: Text(
+            _selectedSeeds.isEmpty
+                ? 'Choisis un premier film pour commencer.'
+                : _isLoading
+                ? 'Recherche de films similaires…'
+                : _settingsChanged
+                ? 'Réglages modifiés : applique-les pour actualiser les résultats.'
+                : _errorMessage != null
+                ? 'La sélection n’a pas pu être chargée. Réessaie.'
+                : '${_response?.recommendations.length ?? 0} films proposés · ${_selectedSeeds.length} film(s) de référence',
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
         ),
-
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
 
         Container(
           height: 56,
           decoration: BoxDecoration(
-            color: AppTheme.gold,
+            color: _selectedSeeds.isEmpty || _isLoading
+                ? AppTheme.surfaceElevated
+                : AppTheme.gold,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
@@ -979,26 +1099,101 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Color(0xFF171006),
+                      color: AppTheme.goldLight,
                     ),
                   )
-                : const Icon(Icons.auto_awesome, color: Color(0xFF171006)),
+                : Icon(
+                    Icons.auto_awesome,
+                    color: _selectedSeeds.isEmpty
+                        ? AppTheme.textMuted
+                        : const Color(0xFF171006),
+                  ),
             label: Text(
               _isLoading
-                  ? 'COMPOSITION EN COURS...'
-                  : (_selectedSeeds.length > 1
-                        ? 'MIXER LES ${_selectedSeeds.length} FILMS'
-                        : 'COMPOSER MA SÉLECTION'),
+                  ? 'RECHERCHE EN COURS…'
+                  : _selectedSeeds.isEmpty
+                  ? 'CHOISIS UN FILM POUR COMMENCER'
+                  : _settingsChanged
+                  ? 'APPLIQUER LES RÉGLAGES'
+                  : _errorMessage != null
+                  ? 'RÉESSAYER'
+                  : 'VOIR MA SÉLECTION',
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               disabledBackgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
               foregroundColor: const Color(0xFF171006),
-              disabledForegroundColor: const Color(0xFF171006),
+              disabledForegroundColor: AppTheme.textMuted,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              textStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-            onPressed: _isLoading ? null : _fetchRecommendations,
+            onPressed: _isLoading || _selectedSeeds.isEmpty
+                ? null
+                : () {
+                    if (_settingsChanged ||
+                        _errorMessage != null ||
+                        _response == null) {
+                      _fetchRecommendations(showResults: true);
+                    } else {
+                      _showResults();
+                    }
+                  },
           ),
+        ),
+        const SizedBox(height: 16),
+        ExpansionTile(
+          key: const PageStorageKey('recommendation-settings'),
+          tilePadding: EdgeInsets.zero,
+          title: const Text(
+            'Affiner ma sélection (facultatif)',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          subtitle: const Text(
+            'Ambiance, couleurs, genres, époque, rythme',
+            style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+          ),
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Les réglages équilibrés suffisent pour commencer. Après une modification, clique sur « Appliquer les réglages ».',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            WeightSliders(
+              weights: _weights,
+              discoverySlider: _discoverySlider,
+              topN: _topN,
+              onWeightsChanged: (w) => setState(() {
+                _weights = w;
+                _settingsChanged = true;
+              }),
+              onDiscoveryChanged: (d) => setState(() {
+                _discoverySlider = d;
+                _settingsChanged = true;
+              }),
+              onTopNChanged: (n) => setState(() {
+                _topN = n;
+                _settingsChanged = true;
+              }),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _selectedSeeds.isEmpty || _isLoading
+                  ? null
+                  : () => _fetchRecommendations(showResults: true),
+              icon: const Icon(Icons.tune),
+              label: const Text('Appliquer les réglages'),
+            ),
+          ],
         ),
       ],
     );
@@ -1110,23 +1305,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                'VIBE MIXTE ACTIVE (${_selectedSeeds.length} FILMS)',
-                style: const TextStyle(
-                  color: AppTheme.gold,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
+              Expanded(
+                child: Text(
+                  'MIX DE ${_selectedSeeds.length} FILMS',
+                  style: const TextStyle(
+                    color: AppTheme.gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
-              const Spacer(),
               InkWell(
-                onTap: () {
-                  setState(() {
-                    _selectedSeeds.clear();
-                    _response = null;
-                  });
-                },
+                onTap: _clearSeeds,
                 borderRadius: BorderRadius.circular(4),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1144,8 +1335,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Moyenne mathématique (centroid) de vos films sélectionnés :',
+            'Ces films sont combinés pour trouver des points communs. Retire une référence pour ajuster le mix.',
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _selectedSeeds
+                .map(
+                  (movie) => InputChip(
+                    label: Text(movie.title, overflow: TextOverflow.ellipsis),
+                    onDeleted: () => _toggleSeed(movie),
+                    deleteButtonTooltipMessage: 'Retirer ${movie.title}',
+                  ),
+                )
+                .toList(),
           ),
           const SizedBox(height: 10),
           SingleChildScrollView(
@@ -1191,25 +1396,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: AppTheme.textMuted,
                                 ),
                               ),
-                      ),
-                      Positioned(
-                        top: 2,
-                        right: 2,
-                        child: InkWell(
-                          onTap: () => _toggleSeed(movie),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(2),
-                            child: const Icon(
-                              Icons.close,
-                              size: 12,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -1268,8 +1454,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildResultsSection() {
     return Column(
+      key: _resultsKey,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: _buildResultsChildren(),
+      children: [
+        _buildStreamingFilterBar(),
+        const SizedBox(height: 16),
+        ..._buildResultsChildren(),
+      ],
     );
   }
 
@@ -1326,7 +1517,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 6),
               Text(
-                'Comparaison des 6 vecteurs et application du filtre de découverte',
+                'Nous cherchons des films proches de ta sélection.',
                 style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
               ),
             ],
@@ -1336,7 +1527,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_response == null || _response!.recommendations.isEmpty) {
-      final isFiltered = _selectedProvider != 'Tous';
+      final isFiltered =
+          _selectedProvider != 'Tous' && _selectedSeeds.isNotEmpty;
       return [
         Container(
           padding: const EdgeInsets.symmetric(vertical: 60),
@@ -1352,7 +1544,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 isFiltered
                     ? 'Aucun film trouvé sur $_selectedProvider pour cette sélection'
-                    : 'La salle est prête. À vous de choisir le premier film.',
+                    : _selectedSeeds.isEmpty
+                    ? 'Tes découvertes apparaîtront ici'
+                    : 'Aucun résultat pour cette sélection',
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 16,
@@ -1364,7 +1558,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 isFiltered
                     ? 'Essayez de repasser sur "Tous" ou d\'ajuster vos curseurs pour élargir la recherche.'
-                    : 'Choisis un film de référence à gauche puis clique sur Générer.',
+                    : _selectedSeeds.isEmpty
+                    ? 'Recherche un titre en haut ou choisis une suggestion. Aucun compte nécessaire.'
+                    : 'Essaie un autre film ou ajuste les réglages.',
                 style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
@@ -1406,14 +1602,14 @@ class _HomeScreenState extends State<HomeScreen> {
       title =
           'Top ${recs.length} Recommandations pour votre mix (${_selectedSeeds.length} films)';
       subtitle =
-          'Moyenne mathématique pondérée sur : ${_selectedSeeds.map((s) => s.title).join(' + ')}';
+          'Inspirées de : ${_selectedSeeds.map((s) => s.title).join(' + ')}';
     } else {
       final refTitle = _selectedSeeds.isNotEmpty
           ? _selectedSeeds.first.title
           : _response!.referenceMovie.title;
       title = 'Top ${recs.length} Recommandations pour "$refTitle"';
       subtitle =
-          'Classées par similarité mathématique multidimensionnelle (ambiance, visuel, rythme, genre, époque).';
+          'Des films proches par leur ambiance, leur style et leur rythme. Le signet les sauvegarde dans ta Watchlist ; « Ajouter au mix » les utilise comme référence.';
     }
 
     return [
@@ -1457,7 +1653,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedBox(width: 5),
                   Text(
-                    'VIBES EN DIRECT',
+                    'FILMS SIMILAIRES',
                     style: TextStyle(
                       color: AppTheme.cyan,
                       fontSize: 9,
@@ -1570,12 +1766,15 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               const Icon(Icons.live_tv_rounded, size: 14, color: AppTheme.gold),
               const SizedBox(width: 6),
               const Text(
-                'DISPONIBILITÉ · STREAMING',
+                'FILTRER LES RECOMMANDATIONS',
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 10.5,

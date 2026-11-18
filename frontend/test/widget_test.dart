@@ -26,11 +26,18 @@ void main() {
                 widget.axisDirection == AxisDirection.down,
           );
           expect(scrollable, findsOneWidget);
-          final hero = find.text('CINEBOOK PRÉSENTE');
-          final controls = find.text('Choisis tes films de référence');
-          final results = find.text(
-            'La salle est prête. À vous de choisir le premier film.',
+          await tester.ensureVisible(
+            find.text('Affiner ma sélection (facultatif)'),
           );
+          await tester.pump();
+          await tester.tap(find.text('Affiner ma sélection (facultatif)'));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 400));
+          tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+          await tester.pump();
+          final hero = find.text('DÉCOUVRIR SANS COMPTE');
+          final controls = find.text('Choisis un film que tu aimes');
+          final results = find.text('Tes découvertes apparaîtront ici');
           final heroBefore = tester.getTopLeft(hero).dy;
           final controlsBefore = tester.getTopLeft(controls).dy;
           final resultsBefore = tester.getTopLeft(results).dy;
@@ -70,7 +77,14 @@ void main() {
     await http.runWithClient(() async {
       await tester.pumpWidget(const CineBookApp());
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(CustomScrollView), findsOneWidget);
+      await tester.ensureVisible(
+        find.text('Affiner ma sélection (facultatif)'),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Affiner ma sélection (facultatif)'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       final scrollable = find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,

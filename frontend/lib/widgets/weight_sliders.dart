@@ -20,6 +20,13 @@ class WeightSliders extends StatelessWidget {
     required this.onTopNChanged,
   });
 
+  bool _isPreset(RecommendationWeights preset) =>
+      weights.atmosphere == preset.atmosphere &&
+      weights.visual == preset.visual &&
+      weights.genre == preset.genre &&
+      weights.era == preset.era &&
+      weights.pacing == preset.pacing;
+
   String _getDiscoveryDescription(double val) {
     if (val < 0.15) return 'Populaires et blockbusters acceptés';
     if (val < 0.45) return 'Équilibre entre classiques et découvertes';
@@ -104,20 +111,21 @@ class WeightSliders extends StatelessWidget {
                 onPressed: () {
                   onWeightsChanged(RecommendationWeights.equilibre);
                   onDiscoveryChanged(0.3);
+                  onTopNChanged(5);
                 },
               ),
             ],
           ),
           const SizedBox(height: 17),
           SingleChildScrollView(
+            key: const PageStorageKey('weight-presets-scroll'),
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildPresetChip(
                   label: 'Équilibré',
                   icon: Icons.balance,
-                  isSelected:
-                      weights.atmosphere == 1.5 && weights.visual == 1.2,
+                  isSelected: _isPreset(RecommendationWeights.equilibre),
                   onTap: () =>
                       onWeightsChanged(RecommendationWeights.equilibre),
                 ),
@@ -125,7 +133,7 @@ class WeightSliders extends StatelessWidget {
                 _buildPresetChip(
                   label: 'Ambiance Pure',
                   icon: Icons.nights_stay,
-                  isSelected: weights.atmosphere == 2.5,
+                  isSelected: _isPreset(RecommendationWeights.ambiancePure),
                   onTap: () =>
                       onWeightsChanged(RecommendationWeights.ambiancePure),
                 ),
@@ -133,7 +141,9 @@ class WeightSliders extends StatelessWidget {
                 _buildPresetChip(
                   label: 'Esthétique Visuelle',
                   icon: Icons.palette,
-                  isSelected: weights.visual == 2.8,
+                  isSelected: _isPreset(
+                    RecommendationWeights.esthetiqueVisuelle,
+                  ),
                   onTap: () => onWeightsChanged(
                     RecommendationWeights.esthetiqueVisuelle,
                   ),
@@ -142,7 +152,7 @@ class WeightSliders extends StatelessWidget {
                 _buildPresetChip(
                   label: 'Rythme & Genre',
                   icon: Icons.speed,
-                  isSelected: weights.genre == 2.0 && weights.pacing == 2.0,
+                  isSelected: _isPreset(RecommendationWeights.rythmeEtGenre),
                   onTap: () =>
                       onWeightsChanged(RecommendationWeights.rythmeEtGenre),
                 ),
@@ -255,6 +265,8 @@ class WeightSliders extends StatelessWidget {
                   ),
                   child: Slider(
                     value: discoverySlider,
+                    semanticFormatterCallback: (value) =>
+                        'Découverte : ${(value * 100).round()} pour cent',
                     min: 0,
                     max: 1,
                     divisions: 20,
@@ -398,6 +410,8 @@ class WeightSliders extends StatelessWidget {
             ),
             child: Slider(
               value: value,
+              semanticFormatterCallback: (value) =>
+                  '$label : ${value.toStringAsFixed(1)}',
               min: 0,
               max: 3,
               divisions: 30,

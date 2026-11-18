@@ -4,6 +4,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'streaming_badges.dart';
+import 'auth_dialog.dart';
 
 class WatchlistDrawer extends StatelessWidget {
   final AuthService authService;
@@ -38,7 +39,11 @@ class WatchlistDrawer extends StatelessWidget {
                       color: AppTheme.gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.bookmarks, color: AppTheme.gold, size: 22),
+                    child: const Icon(
+                      Icons.bookmarks,
+                      color: AppTheme.gold,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -54,15 +59,23 @@ class WatchlistDrawer extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          authService.currentUser?.email ?? 'Connecté',
-                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          authService.currentUser?.email ??
+                              'Sauvegarde personnelle',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 12,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
+                    tooltip: 'Fermer la Watchlist',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -75,6 +88,50 @@ class WatchlistDrawer extends StatelessWidget {
                 listenable: authService,
                 builder: (context, _) {
                   final items = authService.watchlist;
+
+                  if (!authService.isAuthenticated) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.bookmarks_outlined,
+                            color: AppTheme.gold,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Garde tes films pour plus tard',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Un compte permet de sauvegarder et retrouver ta Watchlist. La recherche et les recommandations restent accessibles sans compte.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () =>
+                                AuthDialog.show(context, authService),
+                            child: const Text('Se connecter pour sauvegarder'),
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Continuer sans compte'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
                   if (items.isEmpty) {
                     return Center(
@@ -101,7 +158,10 @@ class WatchlistDrawer extends StatelessWidget {
                             const Text(
                               'Cliquez sur l\'icône de signet sur une carte de film pour l\'enregistrer ici.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                              style: TextStyle(
+                                color: AppTheme.textMuted,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -112,7 +172,8 @@ class WatchlistDrawer extends StatelessWidget {
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: items.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return _buildWatchlistItemCard(context, item);
@@ -122,26 +183,33 @@ class WatchlistDrawer extends StatelessWidget {
               ),
             ),
 
-            // Bouton Déconnexion en bas
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: AppTheme.surface,
-                border: Border(top: BorderSide(color: AppTheme.border)),
-              ),
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.logout, size: 16, color: AppTheme.ruby),
-                label: const Text('Se déconnecter', style: TextStyle(color: AppTheme.ruby)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppTheme.ruby),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+            if (authService.isAuthenticated)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: AppTheme.surface,
+                  border: Border(top: BorderSide(color: AppTheme.border)),
                 ),
-                onPressed: () {
-                  authService.logout();
-                  Navigator.of(context).pop();
-                },
+                child: OutlinedButton.icon(
+                  icon: const Icon(
+                    Icons.logout,
+                    size: 16,
+                    color: AppTheme.ruby,
+                  ),
+                  label: const Text(
+                    'Se déconnecter',
+                    style: TextStyle(color: AppTheme.ruby),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.ruby),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    authService.logout();
+                    Navigator.of(context).pop();
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -170,9 +238,11 @@ class WatchlistDrawer extends StatelessWidget {
                       movie.posterUrl!,
                       width: 50,
                       height: 75,
-                      cacheWidth: (50 * MediaQuery.devicePixelRatioOf(context)).round(),
+                      cacheWidth: (50 * MediaQuery.devicePixelRatioOf(context))
+                          .round(),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildPlaceholder(),
                     )
                   : _buildPlaceholder(),
             ),
@@ -198,14 +268,20 @@ class WatchlistDrawer extends StatelessWidget {
                     children: [
                       Text(
                         '${movie.year}',
-                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.star, color: AppTheme.gold, size: 13),
                       const SizedBox(width: 3),
                       Text(
                         movie.voteAverage.toStringAsFixed(1),
-                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -218,7 +294,10 @@ class WatchlistDrawer extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
                     children: [
                       // Bouton Recommander depuis ce film
                       InkWell(
@@ -227,7 +306,10 @@ class WatchlistDrawer extends StatelessWidget {
                           Navigator.of(context).pop();
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.gold.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -235,7 +317,11 @@ class WatchlistDrawer extends StatelessWidget {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.auto_awesome, color: AppTheme.gold, size: 12),
+                              Icon(
+                                Icons.auto_awesome,
+                                color: AppTheme.gold,
+                                size: 12,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'Recommander',
@@ -249,13 +335,28 @@ class WatchlistDrawer extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const Spacer(),
                       // Bouton Supprimer
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: AppTheme.textMuted, size: 18),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: AppTheme.textMuted,
+                          size: 18,
+                        ),
                         tooltip: 'Retirer de la watchlist',
-                        onPressed: () {
-                          authService.removeFromWatchlist(item.movieId);
+                        onPressed: () async {
+                          try {
+                            await authService.removeFromWatchlist(item.movieId);
+                          } catch (_) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Le film n’a pas pu être retiré. Réessaie.',
+                                  ),
+                                ),
+                              );
+                            }
+                          }
                         },
                       ),
                     ],
