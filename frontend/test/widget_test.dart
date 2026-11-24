@@ -5,8 +5,15 @@ import 'package:http/testing.dart';
 import 'package:cinebook_frontend/main.dart';
 import 'package:cinebook_frontend/models/movie.dart';
 import 'package:cinebook_frontend/models/recommendation.dart';
+import 'package:cinebook_frontend/services/theme_controller.dart';
+import 'package:cinebook_frontend/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.resetStatic();
+  });
   for (final width in [1440.0, 960.0]) {
     testWidgets(
       'Desktop at $width scrolls the hero and both columns together',
@@ -261,5 +268,82 @@ void main() {
       expect(movie.streamingProviders.length, 1);
       expect(movie.streamingProviders.first.name, 'Netflix');
     });
+  });
+
+  group('Theme and responsive identity', () {
+    test('ThemeController restores and persists the selected mode', () async {
+      SharedPreferences.setMockInitialValues({
+        ThemeController.preferenceKey: 'light',
+      });
+      SharedPreferences.resetStatic();
+      final preferences = await SharedPreferences.getInstance();
+      final controller = ThemeController(preferences: preferences);
+      await controller.load();
+      expect(controller.themeMode, ThemeMode.light);
+
+      await controller.setThemeMode(ThemeMode.dark);
+      expect(controller.themeMode, ThemeMode.dark);
+      expect(
+        preferences.getString(ThemeController.preferenceKey),
+        'dark',
+      );
+
+      final restored = ThemeController(preferences: preferences);
+      await restored.load();
+      expect(restored.themeMode, ThemeMode.dark);
+      controller.dispose();
+      restored.dispose();
+    });
+
+    for (final width in [360.0, 390.0, 768.0, 960.0, 1440.0]) {
+      testWidgets('Light and dark themes stay readable at $width', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        SharedPreferences.setMockInitialValues({
+          ThemeController.preferenceKey: 'light',
+        });
+        SharedPreferences.resetStatic();
+
+        await http.runWithClient(() async {
+          await tester.pumpWidget(const CineBookApp());
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 400));
+          await tester.pump();
+
+          var app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+          expect(app.themeMode, ThemeMode.light);
+          var theme = Theme.of(tester.element(find.byType(Scaffold)));
+          expect(theme.brightness, Brightness.light);
+          expect(theme.extension<CineBookColors>(), CineBookColors.light);
+          expect(theme.scaffoldBackgroundColor, CineBookColors.light.background);
+          expect(
+            tester.widget<AppBar>(find.byType(AppBar)).backgroundColor,
+            CineBookColors.light.surface,
+          );
+
+          await tester.tap(find.byTooltip('Passer au thème sombre'));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 400));
+          await tester.pump();
+
+          app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+          expect(app.themeMode, ThemeMode.dark);
+          theme = Theme.of(tester.element(find.byType(Scaffold)));
+          expect(theme.brightness, Brightness.dark);
+          expect(theme.extension<CineBookColors>(), CineBookColors.dark);
+          expect(theme.scaffoldBackgroundColor, CineBookColors.dark.background);
+          expect(
+            tester.widget<AppBar>(find.byType(AppBar)).backgroundColor,
+            CineBookColors.dark.surface,
+          );
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        }, () => MockClient((_) async => http.Response('[]', 200)));
+      });
+    }
   });
 }

@@ -19,6 +19,8 @@ class ReferenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.cineColors;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 400;
@@ -27,61 +29,42 @@ class ReferenceCard extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppTheme.gold.withValues(alpha: 0.06), AppTheme.surface],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppTheme.gold.withValues(alpha: 0.32)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.24),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: colors.surface,
+            border: Border.all(color: colors.border),
+            borderRadius: BorderRadius.circular(4),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 9, 10, 9),
-                decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.07),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(17),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppTheme.gold.withValues(alpha: 0.16),
-                    ),
-                  ),
-                ),
+                height: 2,
+                color: colors.accent,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(15, 8, 8, 8),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.movie_filter_rounded,
-                      color: AppTheme.goldLight,
-                      size: 17,
+                    Icon(
+                      Icons.movie_filter_outlined,
+                      color: colors.accent,
+                      size: 16,
                     ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
                         'FILM DE RÉFÉRENCE',
                         style: TextStyle(
-                          color: AppTheme.goldLight,
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1.1,
+                          letterSpacing: 1.3,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: AppTheme.textMuted,
-                        size: 18,
+                        color: colors.textMuted,
+                        size: 17,
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -92,48 +75,33 @@ class ReferenceCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(isCompact ? 14 : 18),
+                padding: EdgeInsets.fromLTRB(
+                  isCompact ? 14 : 17,
+                  4,
+                  isCompact ? 14 : 17,
+                  17,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppTheme.gold.withValues(alpha: 0.25),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            blurRadius: 16,
-                            offset: const Offset(0, 7),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(11),
-                        child: movie.posterUrl != null
-                            ? Image.network(
-                                movie.posterUrl!,
-                                width: posterWidth,
-                                height: posterHeight,
-                                cacheWidth:
-                                    (posterWidth *
-                                            MediaQuery.devicePixelRatioOf(
-                                              context,
-                                            ))
-                                        .round(),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildPlaceholder(
-                                      posterWidth,
-                                      posterHeight,
-                                    ),
-                              )
-                            : _buildPlaceholder(posterWidth, posterHeight),
-                      ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: movie.posterUrl != null
+                          ? Image.network(
+                              movie.posterUrl!,
+                              width: posterWidth,
+                              height: posterHeight,
+                              cacheWidth: (posterWidth *
+                                      MediaQuery.devicePixelRatioOf(context))
+                                  .round(),
+                              fit: BoxFit.cover,
+                              semanticLabel: 'Affiche de ${movie.title}',
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildPlaceholder(colors, posterWidth, posterHeight),
+                            )
+                          : _buildPlaceholder(colors, posterWidth, posterHeight),
                     ),
-                    SizedBox(width: isCompact ? 13 : 17),
+                    SizedBox(width: isCompact ? 13 : 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,10 +109,11 @@ class ReferenceCard extends StatelessWidget {
                           Text(
                             movie.title,
                             style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: isCompact ? 17 : 19,
-                              height: 1.2,
-                              fontWeight: FontWeight.w800,
+                              fontFamily: AppTheme.displayFont,
+                              color: colors.textPrimary,
+                              fontSize: isCompact ? 20 : 23,
+                              height: 1.12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -155,26 +124,26 @@ class ReferenceCard extends StatelessWidget {
                             children: [
                               Text(
                                 '${movie.year}',
-                                style: const TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  color: colors.textSecondary,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.star_rounded,
-                                    color: AppTheme.gold,
-                                    size: 15,
+                                    color: colors.gold,
+                                    size: 14,
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
                                     '${movie.voteAverage.toStringAsFixed(1)}/10',
-                                    style: const TextStyle(
-                                      color: AppTheme.textPrimary,
-                                      fontSize: 12,
+                                    style: TextStyle(
+                                      color: colors.textPrimary,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -182,61 +151,43 @@ class ReferenceCard extends StatelessWidget {
                               ),
                               Text(
                                 '${movie.voteCount} votes',
-                                style: const TextStyle(
-                                  color: AppTheme.textMuted,
-                                  fontSize: 11,
+                                style: TextStyle(
+                                  color: colors.textMuted,
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 10),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 1),
-                                child: Icon(
-                                  Icons.speed_rounded,
-                                  color: AppTheme.cyan,
-                                  size: 14,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Cadence : ${_getPacingLabel(movie.pacing)} · ${(movie.pacing * 100).toInt()}%',
-                                  style: const TextStyle(
-                                    color: AppTheme.cyan,
-                                    fontSize: 11,
-                                    height: 1.35,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'Cadence : ${_getPacingLabel(movie.pacing)} · ${(movie.pacing * 100).toInt()}%',
+                            style: TextStyle(
+                              color: colors.cyan,
+                              fontSize: 10,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          const SizedBox(height: 11),
+                          const SizedBox(height: 10),
                           Wrap(
                             spacing: 6,
                             runSpacing: 6,
                             children: movie.atmosphereTags.take(4).map((tag) {
                               return Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
+                                  horizontal: 7,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surfaceElevated.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppTheme.border),
+                                  color: colors.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(2),
+                                  border: Border.all(color: colors.border),
                                 ),
                                 child: Text(
                                   '#$tag',
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
-                                    fontSize: 10,
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: 9,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -244,10 +195,10 @@ class ReferenceCard extends StatelessWidget {
                             }).toList(),
                           ),
                           if (movie.streamingProviders.isNotEmpty) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 11),
                             StreamingBadges(
                               providers: movie.streamingProviders,
-                              logoSize: 22,
+                              logoSize: 20,
                               showHeader: true,
                             ),
                           ],
@@ -264,15 +215,19 @@ class ReferenceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder(double width, double height) {
+  Widget _buildPlaceholder(
+    CineBookColors colors,
+    double width,
+    double height,
+  ) {
     return Container(
       width: width,
       height: height,
-      color: AppTheme.surfaceElevated,
-      child: const Icon(
+      color: colors.posterPlaceholder,
+      child: Icon(
         Icons.movie_outlined,
-        color: AppTheme.textMuted,
-        size: 30,
+        color: colors.textMuted,
+        size: 26,
       ),
     );
   }

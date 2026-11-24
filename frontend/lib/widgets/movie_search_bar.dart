@@ -115,12 +115,11 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
         event.logicalKey == LogicalKeyboardKey.arrowUp) {
       final delta = event.logicalKey == LogicalKeyboardKey.arrowDown ? 1 : -1;
       setState(
-        () =>
-            _highlighted = (_highlighted + delta).clamp(0, _results.length - 1),
+        () => _highlighted = (_highlighted + delta).clamp(0, _results.length - 1),
       );
       if (_optionsScroll.hasClients) {
         _optionsScroll.jumpTo(
-          (_highlighted * 80.0).clamp(
+          (_highlighted * 72.0).clamp(
             0,
             _optionsScroll.position.maxScrollExtent,
           ),
@@ -137,87 +136,91 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.cineColors;
+
     return LayoutBuilder(
-      builder: (context, constraints) {
-        return OverlayPortal(
-          controller: _overlay,
-          overlayChildBuilder: (context) {
-            final box =
-                _fieldKey.currentContext!.findRenderObject() as RenderBox;
-            final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
-            final available =
-                MediaQuery.sizeOf(context).height -
-                MediaQuery.viewInsetsOf(context).bottom -
-                bottom -
-                8;
-            return Positioned(
-              width: constraints.maxWidth,
-              child: CompositedTransformFollower(
-                link: _link,
-                targetAnchor: Alignment.bottomLeft,
-                offset: const Offset(0, 6),
-                showWhenUnlinked: false,
-                child: TextFieldTapRegion(
-                  child: Material(
-                    color: AppTheme.surfaceElevated,
-                    elevation: 12,
-                    borderRadius: BorderRadius.circular(14),
-                    clipBehavior: Clip.antiAlias,
+      builder: (context, constraints) => OverlayPortal(
+        controller: _overlay,
+        overlayChildBuilder: (context) {
+          final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
+          final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
+          final available = MediaQuery.sizeOf(context).height -
+              MediaQuery.viewInsetsOf(context).bottom -
+              bottom -
+              8;
+          return Positioned(
+            width: constraints.maxWidth,
+            child: CompositedTransformFollower(
+              link: _link,
+              targetAnchor: Alignment.bottomLeft,
+              offset: const Offset(0, 6),
+              showWhenUnlinked: false,
+              child: TextFieldTapRegion(
+                child: Material(
+                  color: colors.surface,
+                  elevation: 0,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colors.border),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxHeight: math.max(0, math.min(320, available)),
                       ),
-                      child: _buildOptions(),
+                      child: _buildOptions(colors),
                     ),
                   ),
                 ),
               ),
-            );
-          },
-          child: CompositedTransformTarget(
-            link: _link,
-            child: Focus(
-              onKeyEvent: _onKey,
-              child: TextField(
-                key: _fieldKey,
-                controller: _controller,
-                focusNode: _focusNode,
-                onChanged: _search,
-                onTapOutside: (_) => _focusNode.unfocus(),
-                textInputAction: TextInputAction.search,
-                onSubmitted: (_) {
-                  if (_results.isNotEmpty) {
-                    _select(_results[_highlighted < 0 ? 0 : _highlighted]);
-                  }
-                },
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 14,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Rechercher un film',
-                  hintText: 'Ex. Interstellar',
-                  prefixIcon: const Icon(Icons.search, color: AppTheme.gold),
-                  suffixIcon: _controller.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Effacer la recherche',
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: () {
-                            _controller.clear();
-                            _search('');
-                          },
-                        ),
-                ),
+            ),
+          );
+        },
+        child: CompositedTransformTarget(
+          link: _link,
+          child: Focus(
+            onKeyEvent: _onKey,
+            child: TextField(
+              key: _fieldKey,
+              controller: _controller,
+              focusNode: _focusNode,
+              onChanged: _search,
+              onTapOutside: (_) => _focusNode.unfocus(),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) {
+                if (_results.isNotEmpty) {
+                  _select(_results[_highlighted < 0 ? 0 : _highlighted]);
+                }
+              },
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 13,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Rechercher un film',
+                hintText: 'Ex. Interstellar',
+                isDense: true,
+                prefixIcon: Icon(Icons.search, color: colors.textMuted, size: 20),
+                suffixIcon: _controller.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Effacer la recherche',
+                        icon: Icon(Icons.close, size: 17, color: colors.textMuted),
+                        onPressed: () {
+                          _controller.clear();
+                          _search('');
+                        },
+                      ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _buildOptions() {
+  Widget _buildOptions(CineBookColors colors) {
     if (_isLoading || _error != null || _results.isEmpty) {
       return SingleChildScrollView(
         child: Padding(
@@ -228,12 +231,12 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (_isLoading) const LinearProgressIndicator(),
-                const SizedBox(height: 8),
+                if (_isLoading) const SizedBox(height: 10),
                 Text(
                   _isLoading
                       ? 'Recherche en cours…'
                       : _error ?? 'Aucun film trouvé. Essaie un autre titre.',
-                  style: const TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12),
                 ),
                 if (_error != null)
                   TextButton(
@@ -250,44 +253,57 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
       controller: _optionsScroll,
       padding: EdgeInsets.zero,
       shrinkWrap: true,
-      itemExtent: 80,
+      itemExtent: 72,
       itemCount: _results.length,
       itemBuilder: (context, index) {
         final movie = _results[index];
-        final selected = widget.selectedSeeds.any(
-          (seed) => seed.id == movie.id,
-        );
-        return ListTile(
-          selected: _highlighted == index,
-          selectedTileColor: AppTheme.gold.withValues(alpha: 0.12),
-          leading: SizedBox(
-            width: 36,
-            height: 52,
-            child: movie.posterUrl == null
-                ? const Icon(Icons.movie_outlined)
-                : Image.network(
-                    movie.posterUrl!,
-                    fit: BoxFit.cover,
-                    cacheWidth: (36 * MediaQuery.devicePixelRatioOf(context))
-                        .round(),
-                    errorBuilder: (_, _, _) => const Icon(Icons.movie_outlined),
-                  ),
+        final selected = widget.selectedSeeds.any((seed) => seed.id == movie.id);
+        return Container(
+          color: _highlighted == index
+              ? colors.accent.withValues(alpha: 0.1)
+              : Colors.transparent,
+          child: ListTile(
+            dense: true,
+            selected: _highlighted == index,
+            selectedTileColor: Colors.transparent,
+            leading: SizedBox(
+              width: 34,
+              height: 50,
+              child: movie.posterUrl == null
+                  ? Icon(Icons.movie_outlined, color: colors.textMuted)
+                  : Image.network(
+                      movie.posterUrl!,
+                      fit: BoxFit.cover,
+                      cacheWidth: (34 * MediaQuery.devicePixelRatioOf(context))
+                          .round(),
+                      semanticLabel: 'Affiche de ${movie.title}',
+                      errorBuilder: (_, _, _) =>
+                          Icon(Icons.movie_outlined, color: colors.textMuted),
+                    ),
+            ),
+            title: Text(
+              movie.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            subtitle: Text(
+              '${movie.year} · ${selected ? 'Déjà sélectionné' : 'Ajouter comme référence'}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: colors.textMuted, fontSize: 10),
+            ),
+            trailing: Icon(
+              selected ? Icons.check_circle : Icons.add_circle_outline,
+              color: colors.accent,
+              size: 19,
+            ),
+            onTap: () => _select(movie),
           ),
-          title: Text(
-            movie.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${movie.year} · ${selected ? 'Déjà sélectionné' : 'Ajouter comme référence'}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Icon(
-            selected ? Icons.check_circle : Icons.add_circle_outline,
-            color: AppTheme.gold,
-          ),
-          onTap: () => _select(movie),
         );
       },
     );

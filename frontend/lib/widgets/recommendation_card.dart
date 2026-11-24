@@ -23,11 +23,12 @@ class RecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.cineColors;
     final matchPercentage = (item.score * 100).toInt();
     final scoreColor = [
-      AppTheme.gold,
-      AppTheme.cyan,
-      AppTheme.purple,
+      colors.accent,
+      colors.cyan,
+      colors.purple,
     ][(rank - 1) % 3];
 
     return LayoutBuilder(
@@ -37,40 +38,18 @@ class RecommendationCard extends StatelessWidget {
         final posterHeight = posterWidth * 1.5;
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                scoreColor.withValues(alpha: 0.055),
-                AppTheme.surface.withValues(alpha: 0.99),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: scoreColor.withValues(alpha: 0.26),
-              width: item.isDiscoveryGem ? 1.4 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.20),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                height: 3,
-                decoration: BoxDecoration(
-                  color: scoreColor.withValues(alpha: 0.85),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(17),
-                  ),
-                ),
+                height: 2,
+                color: scoreColor.withValues(alpha: item.isDiscoveryGem ? 1 : 0.55),
               ),
               Padding(
                 padding: EdgeInsets.all(isCompact ? 14 : 18),
@@ -79,81 +58,48 @@ class RecommendationCard extends StatelessWidget {
                   children: [
                     Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: scoreColor.withValues(alpha: 0.35),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.30),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(11),
-                            child: SizedBox(
-                              width: posterWidth,
-                              height: posterHeight,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (item.posterUrl != null)
-                                    Image.network(
-                                      item.posterUrl!,
-                                      cacheWidth:
-                                          (posterWidth *
-                                                  MediaQuery.devicePixelRatioOf(
-                                                    context,
-                                                  ))
-                                              .round(),
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              _buildPlaceholder(
-                                                posterWidth,
-                                                posterHeight,
-                                              ),
-                                    )
-                                  else
-                                    _buildPlaceholder(
-                                      posterWidth,
-                                      posterHeight,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: SizedBox(
+                            width: posterWidth,
+                            height: posterHeight,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (item.posterUrl != null)
+                                  Image.network(
+                                    item.posterUrl!,
+                                    cacheWidth: (posterWidth *
+                                            MediaQuery.devicePixelRatioOf(context))
+                                        .round(),
+                                    fit: BoxFit.cover,
+                                    semanticLabel: 'Affiche de ${item.title}',
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        _buildPlaceholder(colors, posterWidth, posterHeight),
+                                  )
+                                else
+                                  _buildPlaceholder(colors, posterWidth, posterHeight),
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 5,
                                     ),
-                                  Positioned(
-                                    top: 7,
-                                    left: 7,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 7,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.surfaceElevated
-                                            .withValues(alpha: 0.94),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: scoreColor.withValues(
-                                            alpha: 0.55,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'N° ${rank.toString().padLeft(2, '0')}',
-                                        style: TextStyle(
-                                          color: scoreColor,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.8,
-                                        ),
+                                    color: colors.background.withValues(alpha: 0.9),
+                                    child: Text(
+                                      'N° ${rank.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        color: colors.textPrimary,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.8,
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -168,14 +114,14 @@ class RecommendationCard extends StatelessWidget {
                                 padding: EdgeInsets.zero,
                                 side: BorderSide(
                                   color: isSelectedSeed
-                                      ? AppTheme.gold
-                                      : AppTheme.border,
+                                      ? colors.accent
+                                      : colors.border,
                                 ),
                                 backgroundColor: isSelectedSeed
-                                    ? AppTheme.gold.withValues(alpha: 0.16)
-                                    : AppTheme.surfaceElevated,
+                                    ? colors.accent.withValues(alpha: 0.1)
+                                    : colors.surfaceElevated,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
                               child: Row(
@@ -185,8 +131,8 @@ class RecommendationCard extends StatelessWidget {
                                     isSelectedSeed ? Icons.check : Icons.add,
                                     size: 13,
                                     color: isSelectedSeed
-                                        ? AppTheme.goldLight
-                                        : AppTheme.textSecondary,
+                                        ? colors.accent
+                                        : colors.textSecondary,
                                   ),
                                   const SizedBox(width: 3),
                                   Flexible(
@@ -197,10 +143,10 @@ class RecommendationCard extends StatelessWidget {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: isSelectedSeed
-                                            ? AppTheme.goldLight
-                                            : AppTheme.textSecondary,
+                                            ? colors.accent
+                                            : colors.textSecondary,
                                         fontSize: 10,
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
@@ -216,58 +162,48 @@ class RecommendationCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Wrap(
+                            spacing: 7,
+                            runSpacing: 7,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              Expanded(
-                                child: Wrap(
-                                  spacing: 7,
-                                  runSpacing: 7,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: scoreColor.withValues(
-                                          alpha: 0.08,
-                                        ),
-                                        borderRadius: BorderRadius.circular(7),
-                                        border: Border.all(
-                                          color: scoreColor.withValues(
-                                            alpha: 0.25,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '$matchPercentage% VIBE',
-                                        style: TextStyle(
-                                          color: scoreColor,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.6,
-                                        ),
-                                      ),
-                                    ),
-                                    if (item.isDiscoveryGem)
-                                      _buildDiscoveryBadge(),
-                                  ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: scoreColor.withValues(alpha: 0.1),
+                                  border: Border.all(
+                                    color: scoreColor.withValues(alpha: 0.4),
+                                  ),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                                child: Text(
+                                  '$matchPercentage% D’AFFINITÉ',
+                                  style: TextStyle(
+                                    color: scoreColor,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.6,
+                                  ),
                                 ),
                               ),
-                              if (onToggleWatchlist != null ||
-                                  onToggleSeed != null)
+                              if (item.isDiscoveryGem)
+                                _buildDiscoveryBadge(colors),
+                              if (onToggleWatchlist != null || onToggleSeed != null)
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     if (onToggleWatchlist != null)
                                       _buildActionButton(
+                                        colors,
                                         icon: isWatchlisted
                                             ? Icons.bookmark
                                             : Icons.bookmark_border,
                                         color: isWatchlisted
-                                            ? AppTheme.goldLight
-                                            : AppTheme.textMuted,
+                                            ? colors.accent
+                                            : colors.textMuted,
                                         tooltip: isWatchlisted
                                             ? 'Retirer de la watchlist'
                                             : 'Ajouter à la watchlist',
@@ -275,15 +211,16 @@ class RecommendationCard extends StatelessWidget {
                                       ),
                                     if (onToggleWatchlist != null &&
                                         onToggleSeed != null)
-                                      const SizedBox(width: 5),
+                                      const SizedBox(width: 4),
                                     if (onToggleSeed != null)
                                       _buildActionButton(
+                                        colors,
                                         icon: isSelectedSeed
                                             ? Icons.check_circle
                                             : Icons.playlist_add,
                                         color: isSelectedSeed
-                                            ? AppTheme.goldLight
-                                            : AppTheme.textMuted,
+                                            ? colors.accent
+                                            : colors.textMuted,
                                         tooltip: isSelectedSeed
                                             ? 'Retirer des films sélectionnés'
                                             : 'Ajouter à la sélection de mixage',
@@ -297,41 +234,42 @@ class RecommendationCard extends StatelessWidget {
                           Text(
                             item.title,
                             style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: isCompact ? 18 : 20,
-                              height: 1.15,
-                              fontWeight: FontWeight.w800,
+                              fontFamily: AppTheme.displayFont,
+                              color: colors.textPrimary,
+                              fontSize: isCompact ? 21 : 24,
+                              height: 1.12,
+                              fontWeight: FontWeight.w600,
                               letterSpacing: -0.3,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 9),
                           Wrap(
-                            spacing: 8,
+                            spacing: 9,
                             runSpacing: 5,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 '${item.year}',
-                                style: const TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  color: colors.textSecondary,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.star_rounded,
-                                    color: AppTheme.gold,
-                                    size: 15,
+                                    color: colors.gold,
+                                    size: 14,
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
                                     '${item.voteAverage.toStringAsFixed(1)}/10',
-                                    style: const TextStyle(
-                                      color: AppTheme.textPrimary,
-                                      fontSize: 12,
+                                    style: TextStyle(
+                                      color: colors.textPrimary,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -339,9 +277,9 @@ class RecommendationCard extends StatelessWidget {
                               ),
                               Text(
                                 '${item.voteCount} avis',
-                                style: const TextStyle(
-                                  color: AppTheme.textMuted,
-                                  fontSize: 11,
+                                style: TextStyle(
+                                  color: colors.textMuted,
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
@@ -353,24 +291,18 @@ class RecommendationCard extends StatelessWidget {
                             children: item.genres.take(3).map((genre) {
                               return Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
+                                  horizontal: 7,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surfaceElevated.withValues(
-                                    alpha: 0.75,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: AppTheme.border.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                  ),
+                                  color: colors.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(2),
+                                  border: Border.all(color: colors.border),
                                 ),
                                 child: Text(
                                   genre,
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -382,7 +314,7 @@ class RecommendationCard extends StatelessWidget {
                             const SizedBox(height: 12),
                             StreamingBadges(
                               providers: item.streamingProviders,
-                              logoSize: 22,
+                              logoSize: 20,
                               showHeader: true,
                             ),
                           ],
@@ -395,63 +327,47 @@ class RecommendationCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.fromLTRB(
                   isCompact ? 14 : 18,
-                  15,
+                  14,
                   isCompact ? 14 : 18,
                   16,
                 ),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      scoreColor.withValues(alpha: 0.035),
-                      Colors.black.withValues(alpha: 0.18),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(17),
-                  ),
-                  border: const Border(top: BorderSide(color: AppTheme.border)),
+                  color: colors.surfaceElevated.withValues(alpha: 0.35),
+                  border: Border(top: BorderSide(color: colors.border)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome_outlined,
-                          color: scoreColor,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          'POURQUOI CETTE VIBE ?',
-                          style: TextStyle(
-                            color: scoreColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'POURQUOI CETTE VIBE ?',
+                      style: TextStyle(
+                        color: scoreColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.3,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       item.explanation.isNotEmpty
                           ? item.explanation
-                          : 'Similarité générale calculée sur les 6 vecteurs de caractéristiques.',
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
+                          : 'Similarité générale calculée sur les vecteurs de caractéristiques.',
+                      style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 12,
-                        height: 1.5,
+                        height: 1.55,
                       ),
                     ),
-                    const SizedBox(height: 13),
-                    Wrap(
-                      spacing: 14,
-                      runSpacing: 11,
-                      children: item.subScores.entries
-                          .map(_buildSubScore)
-                          .toList(),
-                    ),
+                    if (item.subScores.isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 14,
+                        runSpacing: 12,
+                        children: item.subScores.entries
+                            .map((entry) => _buildSubScore(colors, entry))
+                            .toList(),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -462,22 +378,23 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildActionButton(
+    CineBookColors colors, {
     required IconData icon,
     required Color color,
     required String tooltip,
     required VoidCallback onPressed,
   }) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppTheme.border),
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: colors.border),
       ),
       child: IconButton(
-        icon: Icon(icon, color: color, size: 18),
+        icon: Icon(icon, color: color, size: 17),
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         tooltip: tooltip,
@@ -486,24 +403,24 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDiscoveryBadge() {
+  Widget _buildDiscoveryBadge(CineBookColors colors) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.cyan.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: AppTheme.cyan.withValues(alpha: 0.4)),
+        color: colors.cyan.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(2),
+        border: Border.all(color: colors.cyan.withValues(alpha: 0.4)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond_outlined, color: AppTheme.cyan, size: 12),
-          SizedBox(width: 4),
+          Icon(Icons.diamond_outlined, color: colors.cyan, size: 11),
+          const SizedBox(width: 4),
           Text(
             'PÉPITE',
             style: TextStyle(
-              color: AppTheme.cyan,
-              fontSize: 10,
+              color: colors.cyan,
+              fontSize: 9,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.7,
             ),
@@ -513,9 +430,9 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSubScore(MapEntry<String, double> entry) {
+  Widget _buildSubScore(CineBookColors colors, MapEntry<String, double> entry) {
     final percent = (entry.value * 100).toInt();
-    final color = entry.value >= 0.70 ? AppTheme.emerald : AppTheme.goldLight;
+    final color = entry.value >= 0.70 ? colors.emerald : colors.accent;
 
     return SizedBox(
       width: 126,
@@ -529,11 +446,11 @@ class RecommendationCard extends StatelessWidget {
                   entry.key.toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 9,
+                  style: TextStyle(
+                    color: colors.textMuted,
+                    fontSize: 8,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.6,
                   ),
                 ),
               ),
@@ -550,11 +467,11 @@ class RecommendationCard extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(1),
             child: LinearProgressIndicator(
               value: entry.value.clamp(0.0, 1.0),
               minHeight: 3,
-              backgroundColor: AppTheme.surfaceElevated,
+              backgroundColor: colors.surfaceElevated,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -563,15 +480,19 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder(double width, double height) {
+  Widget _buildPlaceholder(
+    CineBookColors colors,
+    double width,
+    double height,
+  ) {
     return Container(
       width: width,
       height: height,
-      color: AppTheme.surfaceElevated,
-      child: const Icon(
+      color: colors.posterPlaceholder,
+      child: Icon(
         Icons.movie_outlined,
-        color: AppTheme.textMuted,
-        size: 30,
+        color: colors.textMuted,
+        size: 28,
       ),
     );
   }

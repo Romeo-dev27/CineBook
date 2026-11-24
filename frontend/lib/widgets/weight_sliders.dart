@@ -27,86 +27,56 @@ class WeightSliders extends StatelessWidget {
       weights.era == preset.era &&
       weights.pacing == preset.pacing;
 
-  String _getDiscoveryDescription(double val) {
-    if (val < 0.15) return 'Populaires et blockbusters acceptés';
-    if (val < 0.45) return 'Équilibre entre classiques et découvertes';
-    if (val < 0.75) return 'Favorise activement les films méconnus';
+  String _getDiscoveryDescription(double value) {
+    if (value < 0.15) return 'Populaires et blockbusters acceptés';
+    if (value < 0.45) return 'Équilibre entre classiques et découvertes';
+    if (value < 0.75) return 'Favorise activement les films méconnus';
     return 'Mode Pépite : priorité absolue aux trésors cachés';
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.cineColors;
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.purple.withValues(alpha: 0.05),
-            AppTheme.surface,
-            AppTheme.cyan.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: colors.background,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                    color: AppTheme.gold.withValues(alpha: 0.22),
-                  ),
-                ),
-                child: const Icon(
-                  Icons.tune_rounded,
-                  color: AppTheme.goldLight,
-                  size: 19,
-                ),
-              ),
-              const SizedBox(width: 11),
-              const Expanded(
+              Icon(Icons.tune, color: colors.accent, size: 19),
+              const SizedBox(width: 9),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'RÉGIE DES SENSATIONS',
+                      'RÉGLAGES DE SÉLECTION',
                       style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
+                        letterSpacing: 1,
                       ),
                     ),
                     SizedBox(height: 3),
                     Text(
-                      'Cinq dimensions pour sculpter ta sélection',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                      'Cinq dimensions pour affiner les résultats',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: colors.textMuted,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.refresh_rounded,
-                  size: 19,
-                  color: AppTheme.textMuted,
-                ),
+                icon: Icon(Icons.refresh, size: 18, color: colors.textMuted),
                 tooltip: 'Réinitialiser les réglages',
                 onPressed: () {
                   onWeightsChanged(RecommendationWeights.equilibre);
@@ -116,31 +86,34 @@ class WeightSliders extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 17),
+          const SizedBox(height: 14),
           SingleChildScrollView(
             key: const PageStorageKey('weight-presets-scroll'),
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildPresetChip(
+                  colors,
                   label: 'Équilibré',
                   icon: Icons.balance,
                   isSelected: _isPreset(RecommendationWeights.equilibre),
                   onTap: () =>
                       onWeightsChanged(RecommendationWeights.equilibre),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 _buildPresetChip(
+                  colors,
                   label: 'Ambiance Pure',
                   icon: Icons.nights_stay,
                   isSelected: _isPreset(RecommendationWeights.ambiancePure),
                   onTap: () =>
                       onWeightsChanged(RecommendationWeights.ambiancePure),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 _buildPresetChip(
+                  colors,
                   label: 'Esthétique Visuelle',
-                  icon: Icons.palette,
+                  icon: Icons.palette_outlined,
                   isSelected: _isPreset(
                     RecommendationWeights.esthetiqueVisuelle,
                   ),
@@ -148,8 +121,9 @@ class WeightSliders extends StatelessWidget {
                     RecommendationWeights.esthetiqueVisuelle,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 _buildPresetChip(
+                  colors,
                   label: 'Rythme & Genre',
                   icon: Icons.speed,
                   isSelected: _isPreset(RecommendationWeights.rythmeEtGenre),
@@ -159,109 +133,103 @@ class WeightSliders extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 17),
-          const Divider(color: AppTheme.border, height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          Divider(color: colors.border, height: 1),
+          const SizedBox(height: 10),
           _buildSlider(
+            colors,
             label: 'Ambiance & Émotions',
             icon: Icons.mood,
             value: weights.atmosphere,
-            color: AppTheme.purple,
-            onChanged: (v) => onWeightsChanged(weights.copyWith(atmosphere: v)),
+            color: colors.purple,
+            onChanged: (value) =>
+                onWeightsChanged(weights.copyWith(atmosphere: value)),
           ),
           _buildSlider(
+            colors,
             label: 'Esthétique Visuelle & Couleurs',
             icon: Icons.palette_outlined,
             value: weights.visual,
-            color: AppTheme.cyan,
-            onChanged: (v) => onWeightsChanged(weights.copyWith(visual: v)),
+            color: colors.cyan,
+            onChanged: (value) =>
+                onWeightsChanged(weights.copyWith(visual: value)),
           ),
           _buildSlider(
+            colors,
             label: 'Genres Cinématographiques',
             icon: Icons.movie_filter,
             value: weights.genre,
-            color: AppTheme.gold,
-            onChanged: (v) => onWeightsChanged(weights.copyWith(genre: v)),
+            color: colors.accent,
+            onChanged: (value) =>
+                onWeightsChanged(weights.copyWith(genre: value)),
           ),
           _buildSlider(
+            colors,
             label: 'Époque & Année',
             icon: Icons.history,
             value: weights.era,
-            color: AppTheme.emerald,
-            onChanged: (v) => onWeightsChanged(weights.copyWith(era: v)),
+            color: colors.emerald,
+            onChanged: (value) => onWeightsChanged(weights.copyWith(era: value)),
           ),
           _buildSlider(
+            colors,
             label: 'Rythme & Cadence',
             icon: Icons.speed,
             value: weights.pacing,
-            color: Colors.orangeAccent,
-            onChanged: (v) => onWeightsChanged(weights.copyWith(pacing: v)),
+            color: colors.orange,
+            onChanged: (value) =>
+                onWeightsChanged(weights.copyWith(pacing: value)),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 7),
+            padding: const EdgeInsets.fromLTRB(13, 13, 13, 5),
             decoration: BoxDecoration(
-              color: AppTheme.cyan.withValues(alpha: 0.035),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.cyan.withValues(alpha: 0.18)),
+              color: colors.surfaceElevated.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(
-                      Icons.diamond_outlined,
-                      color: AppTheme.cyan,
-                      size: 19,
-                    ),
-                    const SizedBox(width: 8),
+                    Icon(Icons.diamond_outlined, color: colors.cyan, size: 17),
+                    const SizedBox(width: 7),
                     const Expanded(
                       child: Text(
                         'CURSEUR DE DÉCOUVERTE',
                         style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.7,
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cyan.withValues(alpha: 0.13),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${(discoverySlider * 100).toInt()}%',
-                        style: const TextStyle(
-                          color: AppTheme.cyan,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
+                    Text(
+                      '${(discoverySlider * 100).toInt()}%',
+                      style: TextStyle(
+                        color: colors.cyan,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 6),
                 Text(
                   _getDiscoveryDescription(discoverySlider),
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 11,
-                    height: 1.35,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 10,
+                    height: 1.45,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: AppTheme.cyan,
-                    thumbColor: AppTheme.cyan,
-                    overlayColor: AppTheme.cyan.withValues(alpha: 0.15),
+                    activeTrackColor: colors.cyan,
+                    thumbColor: colors.cyan,
+                    overlayColor: colors.cyan.withValues(alpha: 0.12),
                   ),
                   child: Slider(
                     value: discoverySlider,
@@ -276,39 +244,37 @@ class WeightSliders extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 15),
-          const Text(
+          const SizedBox(height: 14),
+          Text(
             'NOMBRE DE RECOMMANDATIONS',
             style: TextStyle(
-              color: AppTheme.textMuted,
-              fontSize: 10,
+              color: colors.textMuted,
+              fontSize: 9,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
+              letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [3, 5, 8, 10].map((n) {
-              final isSelected = topN == n;
+            spacing: 7,
+            runSpacing: 7,
+            children: [3, 5, 8, 10].map((count) {
+              final isSelected = topN == count;
               return ChoiceChip(
-                label: Text('$n films'),
+                label: Text('$count films'),
                 selected: isSelected,
-                selectedColor: AppTheme.gold,
-                backgroundColor: AppTheme.surfaceElevated,
+                selectedColor: colors.accent,
+                backgroundColor: colors.surfaceElevated,
                 showCheckmark: false,
                 side: BorderSide(
-                  color: isSelected ? AppTheme.gold : AppTheme.border,
+                  color: isSelected ? colors.accent : colors.border,
                 ),
                 labelStyle: TextStyle(
-                  color: isSelected
-                      ? const Color(0xFF171006)
-                      : AppTheme.textPrimary,
+                  color: isSelected ? colors.onAccent : colors.textPrimary,
                   fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                  fontSize: 10,
                 ),
-                onSelected: (_) => onTopNChanged(n),
+                onSelected: (_) => onTopNChanged(count),
               );
             }).toList(),
           ),
@@ -317,7 +283,8 @@ class WeightSliders extends StatelessWidget {
     );
   }
 
-  Widget _buildPresetChip({
+  Widget _buildPresetChip(
+    CineBookColors colors, {
     required String label,
     required IconData icon,
     required bool isSelected,
@@ -325,15 +292,14 @@ class WeightSliders extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      borderRadius: BorderRadius.circular(3),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.gold : AppTheme.surfaceElevated,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? colors.accent : colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(3),
           border: Border.all(
-            color: isSelected ? AppTheme.gold : AppTheme.border,
+            color: isSelected ? colors.accent : colors.border,
           ),
         ),
         child: Row(
@@ -341,19 +307,15 @@ class WeightSliders extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 14,
-              color: isSelected
-                  ? const Color(0xFF171006)
-                  : AppTheme.textSecondary,
+              size: 13,
+              color: isSelected ? colors.onAccent : colors.textSecondary,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF171006)
-                    : AppTheme.textPrimary,
-                fontSize: 11,
+                color: isSelected ? colors.onAccent : colors.textPrimary,
+                fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
               ),
             ),
@@ -363,7 +325,8 @@ class WeightSliders extends StatelessWidget {
     );
   }
 
-  Widget _buildSlider({
+  Widget _buildSlider(
+    CineBookColors colors, {
     required String label,
     required IconData icon,
     required double value,
@@ -371,19 +334,19 @@ class WeightSliders extends StatelessWidget {
     required ValueChanged<double> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 7),
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -393,7 +356,7 @@ class WeightSliders extends StatelessWidget {
                 '${value.toStringAsFixed(1)}x',
                 style: TextStyle(
                   color: color,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -403,8 +366,8 @@ class WeightSliders extends StatelessWidget {
             data: SliderThemeData(
               activeTrackColor: color,
               thumbColor: color,
-              overlayColor: color.withValues(alpha: 0.15),
-              inactiveTrackColor: AppTheme.surfaceElevated,
+              overlayColor: color.withValues(alpha: 0.12),
+              inactiveTrackColor: colors.surfaceElevated,
               trackHeight: 3,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
             ),

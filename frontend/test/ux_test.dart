@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:cinebook_frontend/main.dart';
+import 'package:cinebook_frontend/services/theme_controller.dart';
 import 'package:cinebook_frontend/widgets/auth_dialog.dart';
 import 'package:cinebook_frontend/widgets/reference_card.dart';
 import 'package:cinebook_frontend/widgets/recommendation_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final movies = [
   {
@@ -108,6 +110,11 @@ Future<void> tapVisible(WidgetTester tester, Finder target) async {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.resetStatic();
+  });
+
   for (final width in [360.0, 390.0, 768.0, 960.0, 1440.0]) {
     testWidgets(
       'Guest discovery, sticky search and optional settings at $width',
@@ -153,7 +160,9 @@ void main() {
             expect(tester.getTopLeft(find.byType(TextField)).dy, searchY);
             expect(find.byType(RecommendationCard), findsOneWidget);
             expect(find.text('Film découvert').hitTestable(), findsOneWidget);
-            await tester.tap(find.text('Watchlist'));
+            await tester.tap(
+              width < 600 ? find.byTooltip('Watchlist') : find.text('Watchlist'),
+            );
             await frames(tester);
             expect(find.text('Garde tes films pour plus tard'), findsOneWidget);
             expect(find.byType(AuthDialog), findsNothing);
@@ -255,6 +264,10 @@ void main() {
     tester,
   ) async {
     viewport(tester, 390, 900);
+    SharedPreferences.setMockInitialValues({
+      ThemeController.preferenceKey: 'light',
+    });
+    SharedPreferences.resetStatic();
     final requests = <http.Request>[];
     await http.runWithClient(
       () async {
@@ -286,13 +299,13 @@ void main() {
           'test-pass',
         );
         await tapVisible(tester, find.text('SE CONNECTER'));
-        expect(find.text('Watchlist (1)'), findsOneWidget);
+        expect(find.byTooltip('Watchlist (1)'), findsOneWidget);
         final saved = requests.singleWhere(
           (r) => r.method == 'POST' && r.url.path.endsWith('/watchlist'),
         );
         expect(jsonDecode(saved.body)['movie_id'], 3);
         expect(saved.headers['authorization'], 'Bearer test-token');
-        await tester.tap(find.text('Watchlist (1)'));
+        await tester.tap(find.byTooltip('Watchlist (1)'));
         await frames(tester);
         expect(
           find.descendant(
@@ -368,6 +381,10 @@ void main() {
     'Mix, genres, streaming, optional settings and reset remain usable',
     (tester) async {
       viewport(tester, 1440, 1000);
+      SharedPreferences.setMockInitialValues({
+        ThemeController.preferenceKey: 'light',
+      });
+      SharedPreferences.resetStatic();
       final requests = <http.Request>[];
       await http.runWithClient(
         () async {
@@ -550,7 +567,7 @@ void main() {
         );
         expect(find.text('DÉCOUVRIR SANS COMPTE'), findsNothing);
         expect(find.byType(ReferenceCard), findsOneWidget);
-        await tester.tap(find.text('Watchlist (0)'));
+        await tester.tap(find.byTooltip('Watchlist (0)'));
         await frames(tester);
         expect(find.text('Votre Watchlist est vide'), findsOneWidget);
         await tester.tap(find.text('Se déconnecter'));

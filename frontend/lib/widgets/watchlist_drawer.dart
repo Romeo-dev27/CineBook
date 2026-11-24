@@ -18,52 +18,42 @@ class WatchlistDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.cineColors;
+
     return Drawer(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.surface,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // En-tête
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: AppTheme.surface,
-                border: Border(bottom: BorderSide(color: AppTheme.border)),
+              padding: const EdgeInsets.fromLTRB(20, 20, 12, 18),
+              decoration: BoxDecoration(
+                color: colors.background,
+                border: Border(bottom: BorderSide(color: colors.border)),
               ),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.gold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.bookmarks,
-                      color: AppTheme.gold,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Ma Watchlist',
                           style: TextStyle(
-                            color: AppTheme.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontFamily: AppTheme.displayFont,
+                            color: colors.textPrimary,
+                            fontSize: 25,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
                           authService.currentUser?.email ??
                               'Sauvegarde personnelle',
-                          style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 12,
+                          style: TextStyle(
+                            color: colors.textMuted,
+                            fontSize: 11,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -71,18 +61,13 @@ class WatchlistDrawer extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: AppTheme.textSecondary,
-                    ),
+                    icon: Icon(Icons.close, color: colors.textSecondary),
                     tooltip: 'Fermer la Watchlist',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-
-            // Liste des films
             Expanded(
               child: ListenableBuilder(
                 listenable: authService,
@@ -94,36 +79,39 @@ class WatchlistDrawer extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.bookmarks_outlined,
-                            color: AppTheme.gold,
-                            size: 48,
+                            color: colors.accent,
+                            size: 44,
                           ),
                           const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             'Garde tes films pour plus tard',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
+                              fontFamily: AppTheme.displayFont,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Un compte permet de sauvegarder et retrouver ta Watchlist. La recherche et les recommandations restent accessibles sans compte.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              height: 1.5,
+                              color: colors.textSecondary,
+                              fontSize: 13,
+                              height: 1.6,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 22),
                           ElevatedButton(
                             onPressed: () =>
                                 AuthDialog.show(context, authService),
                             child: const Text('Se connecter pour sauvegarder'),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
                             child: const Text('Continuer sans compte'),
@@ -142,25 +130,26 @@ class WatchlistDrawer extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.bookmark_border,
-                              color: AppTheme.textMuted.withValues(alpha: 0.5),
-                              size: 64,
+                              color: colors.textMuted.withValues(alpha: 0.6),
+                              size: 54,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'Votre Watchlist est vide',
                               style: TextStyle(
-                                color: AppTheme.textPrimary,
+                                color: colors.textPrimary,
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Cliquez sur l\'icône de signet sur une carte de film pour l\'enregistrer ici.',
+                            Text(
+                              'Cliquez sur l’icône de signet sur une carte de film pour l’enregistrer ici.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: AppTheme.textMuted,
-                                fontSize: 13,
+                                color: colors.textMuted,
+                                fontSize: 12,
+                                height: 1.5,
                               ),
                             ),
                           ],
@@ -173,36 +162,28 @@ class WatchlistDrawer extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     itemCount: items.length,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return _buildWatchlistItemCard(context, item);
-                    },
+                        const SizedBox(height: 10),
+                    itemBuilder: (context, index) =>
+                        _buildWatchlistItemCard(context, colors, items[index]),
                   );
                 },
               ),
             ),
-
             if (authService.isAuthenticated)
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: AppTheme.surface,
-                  border: Border(top: BorderSide(color: AppTheme.border)),
+                decoration: BoxDecoration(
+                  color: colors.background,
+                  border: Border(top: BorderSide(color: colors.border)),
                 ),
                 child: OutlinedButton.icon(
-                  icon: const Icon(
-                    Icons.logout,
-                    size: 16,
-                    color: AppTheme.ruby,
-                  ),
-                  label: const Text(
+                  icon: Icon(Icons.logout, size: 16, color: colors.ruby),
+                  label: Text(
                     'Se déconnecter',
-                    style: TextStyle(color: AppTheme.ruby),
+                    style: TextStyle(color: colors.ruby),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppTheme.ruby),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: colors.ruby),
                   ),
                   onPressed: () {
                     authService.logout();
@@ -216,23 +197,26 @@ class WatchlistDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildWatchlistItemCard(BuildContext context, WatchlistItem item) {
+  Widget _buildWatchlistItemCard(
+    BuildContext context,
+    CineBookColors colors,
+    WatchlistItem item,
+  ) {
     final movie = item.movie;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
+        color: colors.background,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: colors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Poster
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(2),
               child: movie.posterUrl != null
                   ? Image.network(
                       movie.posterUrl!,
@@ -241,14 +225,13 @@ class WatchlistDrawer extends StatelessWidget {
                       cacheWidth: (50 * MediaQuery.devicePixelRatioOf(context))
                           .round(),
                       fit: BoxFit.cover,
+                      semanticLabel: 'Affiche de ${movie.title}',
                       errorBuilder: (context, error, stackTrace) =>
-                          _buildPlaceholder(),
+                          _buildPlaceholder(colors),
                     )
-                  : _buildPlaceholder(),
+                  : _buildPlaceholder(colors),
             ),
             const SizedBox(width: 12),
-
-            // Détails
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,10 +240,11 @@ class WatchlistDrawer extends StatelessWidget {
                     movie.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontFamily: AppTheme.displayFont,
+                      color: colors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -268,19 +252,19 @@ class WatchlistDrawer extends StatelessWidget {
                     children: [
                       Text(
                         '${movie.year}',
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 11,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.star, color: AppTheme.gold, size: 13),
+                      Icon(Icons.star, color: colors.gold, size: 12),
                       const SizedBox(width: 3),
                       Text(
                         movie.voteAverage.toStringAsFixed(1),
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 12,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -289,8 +273,9 @@ class WatchlistDrawer extends StatelessWidget {
                     const SizedBox(height: 6),
                     StreamingBadges(
                       providers: movie.streamingProviders,
-                      logoSize: 18.0,
+                      logoSize: 14,
                       showHeader: false,
+                      maxBadges: 2,
                     ),
                   ],
                   const SizedBox(height: 8),
@@ -299,7 +284,6 @@ class WatchlistDrawer extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 8,
                     children: [
-                      // Bouton Recommander depuis ce film
                       InkWell(
                         onTap: () {
                           onSelectMovie(movie);
@@ -308,38 +292,40 @@ class WatchlistDrawer extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
-                            vertical: 4,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.gold.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
+                            color: colors.accent.withValues(alpha: 0.1),
+                            border: Border.all(
+                              color: colors.accent.withValues(alpha: 0.45),
+                            ),
+                            borderRadius: BorderRadius.circular(3),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.auto_awesome,
-                                color: AppTheme.gold,
+                                color: colors.accent,
                                 size: 12,
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
                                 'Recommander',
                                 style: TextStyle(
-                                  color: AppTheme.gold,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                                  color: colors.accent,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      // Bouton Supprimer
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.delete_outline,
-                          color: AppTheme.textMuted,
+                          color: colors.textMuted,
                           size: 18,
                         ),
                         tooltip: 'Retirer de la watchlist',
@@ -370,12 +356,12 @@ class WatchlistDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(CineBookColors colors) {
     return Container(
       width: 50,
       height: 75,
-      color: AppTheme.surfaceElevated,
-      child: const Icon(Icons.movie, color: AppTheme.textMuted, size: 24),
+      color: colors.posterPlaceholder,
+      child: Icon(Icons.movie, color: colors.textMuted, size: 22),
     );
   }
 }
